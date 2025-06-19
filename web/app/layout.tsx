@@ -12,7 +12,7 @@ const fontSans = FontSans({
 });
 
 export const metadata = {
-  title: "Todo App",
+  title: "Movies App",
   description: "A full-stack todo application with authentication",
 };
 
