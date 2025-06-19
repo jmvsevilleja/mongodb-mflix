@@ -11,6 +11,7 @@ import { loggerConfig } from './config/logger.config';
 // import { TodosModule } from './todos/todos.module';
 // import { WalletModule } from './wallet/wallet.module';
 // import { FacesModule } from './faces/faces.module';
+import { MoviesModule } from './movies/movies.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { loggerConfig } from './config/logger.config';
     // TodosModule,
     // WalletModule,
     // FacesModule, // Added FacesModule here
+    MoviesModule,
   ],
 })
 export class AppModule {}

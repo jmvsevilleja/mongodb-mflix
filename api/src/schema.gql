@@ -2,7 +2,7 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-input AllFacesInput {
+input AllMoviesInput {
   limit: Int! = 10
   page: Int! = 1
   searchTerm: String
@@ -29,11 +29,6 @@ type Face {
   views: Int!
 }
 
-type Mutation {
-  incrementFaceView(faceId: ID!): Face!
-  toggleFaceLike(faceId: ID!): Face!
-}
-
 type Query {
-  allFaces(input: AllFacesInput!): [Face!]!
+  allMovies(input: AllMoviesInput!): [Face!]!
 }

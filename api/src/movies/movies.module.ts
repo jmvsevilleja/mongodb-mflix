@@ -1,21 +1,14 @@
 import { Module } from '@nestjs/common';
-import { FacesResolver } from './faces.resolver';
-import { FacesService } from './faces.service';
+import { MoviesResolver } from './movies.resolver';
+import { MoviesService } from './movies.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Face, FaceSchema } from './schemas/face.schema';
-import {
-  FaceInteraction,
-  FaceInteractionSchema,
-} from './schemas/face-interaction.schema';
+import { Movie, MovieSchema } from './schemas/movie.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: Face.name, schema: FaceSchema },
-      { name: FaceInteraction.name, schema: FaceInteractionSchema },
-    ]),
+    MongooseModule.forFeature([{ name: Movie.name, schema: MovieSchema }]),
   ],
-  providers: [FacesResolver, FacesService],
-  exports: [FacesService],
+  providers: [MoviesResolver, MoviesService],
+  exports: [MoviesService],
 })
-export class FacesModule {}
+export class MoviesModule {}

@@ -32,6 +32,63 @@ export class Movie {
 
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   userId: string;
+
+  @Prop()
+  plot: string;
+
+  @Prop([String])
+  genres: string[];
+
+  @Prop()
+  runtime: number;
+
+  @Prop([String])
+  cast: string[];
+
+  @Prop()
+  poster: string;
+
+  @Prop({ required: true })
+  title: string;
+
+  @Prop()
+  fullplot: string;
+
+  @Prop([String])
+  languages: string[];
+
+  @Prop({ type: Date })
+  released: Date;
+
+  @Prop([String])
+  directors: string[];
+
+  @Prop()
+  rated: string;
+
+  @Prop({ type: Object })
+  awards: Record<string, any>;
+
+  @Prop()
+  lastupdated: string;
+
+  @Prop()
+  year: number;
+
+  @Prop({ type: Object })
+  imdb: Record<string, any>;
+
+  @Prop([String])
+  countries: string[];
+
+  @Prop()
+  type: string;
+
+  @Prop({ type: Object })
+  tomatoes: Record<string, any>;
+
+  @Prop()
+  num_mflix_comments: number;
 }
 
 export const MovieSchema = SchemaFactory.createForClass(Movie);

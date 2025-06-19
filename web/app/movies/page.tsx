@@ -5,13 +5,6 @@ import Image from "next/image";
 import { useQuery, useMutation } from "@apollo/client";
 import { gql } from "@apollo/client";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -79,7 +72,7 @@ export default function MoviesPage() {
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"createdAt" | "views" | "likes">(
-    "views"
+    "createdAt"
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [allMovies, setAllMovies] = useState<Movie[]>([]);
@@ -174,128 +167,6 @@ export default function MoviesPage() {
     setCurrentPage(1);
   };
 
-  const handleMovieClick = async (face: Movie) => {
-    if (!session) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to view larger images",
-        variant: "destructive",
-      });
-      router.push("/auth/signin");
-      return;
-    }
-
-    const userCredits = walletData?.myWallet?.credits || 0;
-    const hasAlreadyViewed = viewedMovies.has(face.id);
-
-    if (!hasAlreadyViewed && userCredits < 1) {
-      setShowCreditPrompt(true);
-      return;
-    }
-
-    setSelectedMovie(face);
-  };
-
-  const handleImageView = async () => {
-    if (!selectedMovie || !session) return;
-    const hasAlreadyViewed = selectedMovie.isViewed;
-
-    try {
-      // Deduct credit if user hasn't viewed this face before
-      if (!hasAlreadyViewed) {
-        await deductCredits({
-          variables: {
-            amount: 1,
-            description: `Viewed larger image of ${selectedMovie.name}`,
-          },
-        });
-
-        // Increment view count
-        await incrementMovieView({
-          variables: {
-            faceId: selectedMovie.id,
-          },
-        });
-
-        // Update local state
-        setAllMovies((prev) =>
-          prev.map((face) =>
-            face.id === selectedMovie.id
-              ? { ...face, views: face.views + 1, isViewed: true }
-              : face
-          )
-        );
-      }
-
-      toast({
-        title: "Image Viewed",
-        description: hasAlreadyViewed
-          ? "Viewing larger image (no credit deducted)"
-          : "1 credit deducted for viewing larger image",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to process image view",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleLike = async (face: Movie, event: React.MouseEvent) => {
-    event.stopPropagation();
-
-    if (!session) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to like movies",
-        variant: "destructive",
-      });
-      router.push("/auth/signin");
-      return;
-    }
-
-    try {
-      await toggleMovieLike({
-        variables: {
-          faceId: face.id,
-        },
-      });
-
-      // Update local state
-      setAllMovies((prev) =>
-        prev.map((f) =>
-          f.id === face.id
-            ? {
-                ...f,
-                likes: f.isLiked ? f.likes - 1 : f.likes + 1,
-                isLiked: !f.isLiked,
-              }
-            : f
-        )
-      );
-
-      toast({
-        title: face.isLiked ? "Unliked" : "Liked",
-        description: `You ${face.isLiked ? "unliked" : "liked"} ${face.name}`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update like status",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const getButtonClass = (value: "createdAt" | "views" | "likes") => {
-    return `px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-      sortBy === value
-        ? "bg-primary text-primary-foreground"
-        : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-    }`;
-  };
-
   return (
     <div className="flex min-h-screen flex-col">
       <MainHeader />
@@ -350,7 +221,6 @@ export default function MoviesPage() {
                   height={600}
                   className="object-cover w-full h-full"
                   unoptimized
-                  onLoad={handleImageView}
                 />
               </div>
               <div className="flex items-center justify-between text-sm">
@@ -367,7 +237,6 @@ export default function MoviesPage() {
                 <Button
                   variant={selectedMovie.isLiked ? "default" : "outline"}
                   size="sm"
-                  onClick={(e) => handleLike(selectedMovie, e)}
                 >
                   <Heart
                     className={`h-4 w-4 mr-2 ${
