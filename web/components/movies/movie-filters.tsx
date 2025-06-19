@@ -59,7 +59,7 @@ export function MovieFilters({
   };
 
   const handleGenreRemove = (genre: string) => {
-    onGenresChange(selectedGenres.filter(g => g !== genre));
+    onGenresChange(selectedGenres.filter((g) => g !== genre));
   };
 
   const handleLanguageSelect = (language: string) => {
@@ -69,7 +69,7 @@ export function MovieFilters({
   };
 
   const handleLanguageRemove = (language: string) => {
-    onLanguagesChange(selectedLanguages.filter(l => l !== language));
+    onLanguagesChange(selectedLanguages.filter((l) => l !== language));
   };
 
   const handleYearRangeUpdate = () => {
@@ -96,9 +96,9 @@ export function MovieFilters({
               <SelectValue placeholder="Select genres" />
             </SelectTrigger>
             <SelectContent>
-              {filters.genres.map(genre => (
-                <SelectItem 
-                  key={genre} 
+              {filters.genres.map((genre) => (
+                <SelectItem
+                  key={genre}
                   value={genre}
                   disabled={selectedGenres.includes(genre)}
                 >
@@ -109,11 +109,11 @@ export function MovieFilters({
           </Select>
           {selectedGenres.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {selectedGenres.map(genre => (
+              {selectedGenres.map((genre) => (
                 <Badge key={genre} variant="secondary">
                   {genre}
-                  <X 
-                    className="h-3 w-3 ml-1 cursor-pointer" 
+                  <X
+                    className="h-3 w-3 ml-1 cursor-pointer"
                     onClick={() => handleGenreRemove(genre)}
                   />
                 </Badge>
@@ -130,8 +130,7 @@ export function MovieFilters({
               <SelectValue placeholder="Select rating" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Ratings</SelectItem>
-              {filters.ratings.map(rating => (
+              {filters.ratings.map((rating) => (
                 <SelectItem key={rating} value={rating}>
                   {rating}
                 </SelectItem>
@@ -148,9 +147,9 @@ export function MovieFilters({
               <SelectValue placeholder="Select languages" />
             </SelectTrigger>
             <SelectContent>
-              {filters.languages.map(language => (
-                <SelectItem 
-                  key={language} 
+              {filters.languages.map((language) => (
+                <SelectItem
+                  key={language}
                   value={language}
                   disabled={selectedLanguages.includes(language)}
                 >
@@ -161,11 +160,11 @@ export function MovieFilters({
           </Select>
           {selectedLanguages.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {selectedLanguages.map(language => (
+              {selectedLanguages.map((language) => (
                 <Badge key={language} variant="secondary">
                   {language}
-                  <X 
-                    className="h-3 w-3 ml-1 cursor-pointer" 
+                  <X
+                    className="h-3 w-3 ml-1 cursor-pointer"
                     onClick={() => handleLanguageRemove(language)}
                   />
                 </Badge>
@@ -182,44 +181,13 @@ export function MovieFilters({
               <SelectValue placeholder="Select country" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Countries</SelectItem>
-              {filters.countries.map(country => (
+              {filters.countries.map((country) => (
                 <SelectItem key={country} value={country}>
                   {country}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-        </div>
-
-        {/* Year Range */}
-        <div className="space-y-3">
-          <Label>Year Range</Label>
-          <div className="flex gap-2 items-center">
-            <Input
-              type="number"
-              placeholder="From"
-              value={yearFrom}
-              onChange={(e) => setYearFrom(e.target.value)}
-              min={filters.minYear}
-              max={filters.maxYear}
-            />
-            <span className="text-muted-foreground">to</span>
-            <Input
-              type="number"
-              placeholder="To"
-              value={yearTo}
-              onChange={(e) => setYearTo(e.target.value)}
-              min={filters.minYear}
-              max={filters.maxYear}
-            />
-            <Button onClick={handleYearRangeUpdate} size="sm">
-              Apply
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Available range: {filters.minYear} - {filters.maxYear}
-          </p>
         </div>
       </CardContent>
     </Card>
