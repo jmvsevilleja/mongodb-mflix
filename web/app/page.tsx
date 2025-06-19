@@ -17,14 +17,9 @@ export default function Home() {
               A simple, efficient movie app to keep track of favorite movies.
             </p>
             <div className="space-x-4">
-              <Link href="/auth/signup">
+              <Link href="/movies">
                 <Button size="lg" className="px-8">
                   Get Started
-                </Button>
-              </Link>
-              <Link href="/auth/signin">
-                <Button size="lg" variant="outline" className="px-8">
-                  Sign In
                 </Button>
               </Link>
             </div>
@@ -36,7 +31,8 @@ export default function Home() {
               Features
             </h2>
             <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-              Everything you need to stay organized and productive
+              Everything you need to keep track of your favorite movies in one
+              place
             </p>
           </div>
           <div className="mx-auto grid justify-center gap-4 sm:grid-cols-2 md:max-w-[64rem] md:grid-cols-3">
@@ -45,9 +41,10 @@ export default function Home() {
                 <Check className="h-6 w-6 text-primary" />
               </div>
               <div className="mt-4 space-y-2">
-                <h3 className="font-bold">Task Management</h3>
+                <h3 className="font-bold">Movie Search</h3>
                 <p className="text-sm text-muted-foreground">
-                  Create, update, and delete tasks with ease
+                  Search for movies by title, genre, or year. Get detailed
+                  information about each movie
                 </p>
               </div>
             </div>
@@ -56,9 +53,10 @@ export default function Home() {
                 <Check className="h-6 w-6 text-primary" />
               </div>
               <div className="mt-4 space-y-2">
-                <h3 className="font-bold">Secure Authentication</h3>
+                <h3 className="font-bold">Advance Search</h3>
                 <p className="text-sm text-muted-foreground">
-                  Sign in with email or Google for a seamless experience
+                  Using AI that can analyze your movie descriptions and suggest
+                  related movies
                 </p>
               </div>
             </div>
@@ -69,7 +67,7 @@ export default function Home() {
               <div className="mt-4 space-y-2">
                 <h3 className="font-bold">Responsive Design</h3>
                 <p className="text-sm text-muted-foreground">
-                  Access your todos from any device, anytime
+                  Access your movies from any device, anytime
                 </p>
               </div>
             </div>
@@ -79,7 +77,7 @@ export default function Home() {
       <footer className="border-t py-6">
         <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
           <p className="text-center text-sm leading-loose text-muted-foreground">
-            &copy; {new Date().getFullYear()} Todo App. All rights reserved.
+            &copy; {new Date().getFullYear()} Movies App. All rights reserved.
           </p>
         </div>
       </footer>
