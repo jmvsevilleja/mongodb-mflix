@@ -15,7 +15,6 @@ export class MoviesService {
     searchTerm?: string,
     sortBy?: string,
     sortOrder?: string,
-    userId?: string,
   ): Promise<Movie[]> {
     const query: any = {};
     if (searchTerm) {
@@ -33,10 +32,6 @@ export class MoviesService {
       .skip((page - 1) * limit)
       .limit(limit)
       .exec();
-
-    if (!userId) {
-      return movies.map((movie) => this.movieModel.hydrate(movie).toJSON());
-    }
 
     // Add interaction data to each movie
     return movies;

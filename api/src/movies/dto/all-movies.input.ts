@@ -16,7 +16,4 @@ export class AllMoviesInput {
 
   @Field(() => String, { nullable: true })
   sortOrder?: string;
-
-  @Field(() => String, { nullable: true })
-  userId?: string;
 }
