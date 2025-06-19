@@ -32,7 +32,11 @@ const GET_MOVIES = gql`
         genres
         rated
         runtime
-        imdb
+        imdb {
+          rating
+          votes
+          id
+        }
         directors
         cast
       }
@@ -43,8 +47,6 @@ const GET_MOVIES = gql`
         ratings
         languages
         countries
-        minYear
-        maxYear
       }
     }
   }
@@ -62,14 +64,30 @@ const GET_MOVIE_DETAIL = gql`
       genres
       rated
       runtime
-      imdb
+      imdb {
+        rating
+        votes
+        id
+      }
       directors
       cast
       languages
       countries
       released
-      awards
-      tomatoes
+      awards {
+        wins
+        nominations
+      }
+      tomatoes {
+        viewer {
+          rating
+          numReviews
+        }
+        critic {
+          rating
+          numReviews
+        }
+      }
       type
     }
   }
@@ -112,10 +130,12 @@ export default function MoviesPage() {
   const [selectedRating, setSelectedRating] = useState<string>("");
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [selectedCountry, setSelectedCountry] = useState<string>("");
-  const [yearRange, setYearRange] = useState<{ from?: number; to?: number }>({});
+  const [yearRange, setYearRange] = useState<{ from?: number; to?: number }>(
+    {}
+  );
   const [sortBy, setSortBy] = useState<string>("year");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  
+
   // UI state
   const [page, setPage] = useState(1);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
@@ -129,7 +149,16 @@ export default function MoviesPage() {
   useEffect(() => {
     setPage(1);
     setAllMovies([]);
-  }, [debouncedSearchTerm, selectedGenres, selectedRating, selectedLanguages, selectedCountry, yearRange, sortBy, sortOrder]);
+  }, [
+    debouncedSearchTerm,
+    selectedGenres,
+    selectedRating,
+    selectedLanguages,
+    selectedCountry,
+    yearRange,
+    sortBy,
+    sortOrder,
+  ]);
 
   // Fetch movies
   const { data, loading, error, fetchMore } = useQuery(GET_MOVIES, {
@@ -142,8 +171,8 @@ export default function MoviesPage() {
         rated: selectedRating || undefined,
         languages: selectedLanguages.length > 0 ? selectedLanguages : undefined,
         country: selectedCountry || undefined,
-        yearFrom: yearRange.from,
-        yearTo: yearRange.to,
+        minYear: yearRange.from,
+        maxYear: yearRange.to,
         sortBy,
         sortOrder,
       },
@@ -152,20 +181,23 @@ export default function MoviesPage() {
       if (page === 1) {
         setAllMovies(data.movies.movies);
       } else {
-        setAllMovies(prev => [...prev, ...data.movies.movies]);
+        setAllMovies((prev) => [...prev, ...data.movies.movies]);
       }
     },
   });
 
   // Fetch movie detail
-  const { data: movieDetailData, loading: movieDetailLoading } = useQuery(GET_MOVIE_DETAIL, {
-    variables: { id: selectedMovie?.id || "" },
-    skip: !selectedMovie?.id,
-  });
+  const { data: movieDetailData, loading: movieDetailLoading } = useQuery(
+    GET_MOVIE_DETAIL,
+    {
+      variables: { id: selectedMovie?.id || "" },
+      skip: !selectedMovie?.id,
+    }
+  );
 
   const loadMoreMovies = useCallback(() => {
     if (!loading && data?.movies.hasMore) {
-      setPage(prev => prev + 1);
+      setPage((prev) => prev + 1);
     }
   }, [loading, data?.movies.hasMore]);
 
@@ -184,7 +216,7 @@ export default function MoviesPage() {
     setSortOrder("desc");
   };
 
-  const hasActiveFilters = 
+  const hasActiveFilters =
     debouncedSearchTerm ||
     selectedGenres.length > 0 ||
     selectedRating ||
@@ -248,7 +280,10 @@ export default function MoviesPage() {
             </SelectContent>
           </Select>
 
-          <Select value={sortOrder} onValueChange={(value: "asc" | "desc") => setSortOrder(value)}>
+          <Select
+            value={sortOrder}
+            onValueChange={(value: "asc" | "desc") => setSortOrder(value)}
+          >
             <SelectTrigger className="w-[120px]">
               <SelectValue />
             </SelectTrigger>
@@ -259,7 +294,11 @@ export default function MoviesPage() {
           </Select>
 
           {hasActiveFilters && (
-            <Button variant="ghost" onClick={clearFilters} className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              onClick={clearFilters}
+              className="flex items-center gap-2"
+            >
               <X className="h-4 w-4" />
               Clear Filters
             </Button>
@@ -270,42 +309,46 @@ export default function MoviesPage() {
         {hasActiveFilters && (
           <div className="flex flex-wrap gap-2">
             {debouncedSearchTerm && (
-              <Badge variant="secondary">
-                Search: {debouncedSearchTerm}
-              </Badge>
+              <Badge variant="secondary">Search: {debouncedSearchTerm}</Badge>
             )}
-            {selectedGenres.map(genre => (
+            {selectedGenres.map((genre) => (
               <Badge key={genre} variant="secondary">
                 Genre: {genre}
-                <X 
-                  className="h-3 w-3 ml-1 cursor-pointer" 
-                  onClick={() => setSelectedGenres(prev => prev.filter(g => g !== genre))}
+                <X
+                  className="h-3 w-3 ml-1 cursor-pointer"
+                  onClick={() =>
+                    setSelectedGenres((prev) => prev.filter((g) => g !== genre))
+                  }
                 />
               </Badge>
             ))}
             {selectedRating && (
               <Badge variant="secondary">
                 Rating: {selectedRating}
-                <X 
-                  className="h-3 w-3 ml-1 cursor-pointer" 
+                <X
+                  className="h-3 w-3 ml-1 cursor-pointer"
                   onClick={() => setSelectedRating("")}
                 />
               </Badge>
             )}
-            {selectedLanguages.map(lang => (
+            {selectedLanguages.map((lang) => (
               <Badge key={lang} variant="secondary">
                 Language: {lang}
-                <X 
-                  className="h-3 w-3 ml-1 cursor-pointer" 
-                  onClick={() => setSelectedLanguages(prev => prev.filter(l => l !== lang))}
+                <X
+                  className="h-3 w-3 ml-1 cursor-pointer"
+                  onClick={() =>
+                    setSelectedLanguages((prev) =>
+                      prev.filter((l) => l !== lang)
+                    )
+                  }
                 />
               </Badge>
             ))}
             {selectedCountry && (
               <Badge variant="secondary">
                 Country: {selectedCountry}
-                <X 
-                  className="h-3 w-3 ml-1 cursor-pointer" 
+                <X
+                  className="h-3 w-3 ml-1 cursor-pointer"
                   onClick={() => setSelectedCountry("")}
                 />
               </Badge>
@@ -313,8 +356,8 @@ export default function MoviesPage() {
             {(yearRange.from || yearRange.to) && (
               <Badge variant="secondary">
                 Year: {yearRange.from || "Any"} - {yearRange.to || "Any"}
-                <X 
-                  className="h-3 w-3 ml-1 cursor-pointer" 
+                <X
+                  className="h-3 w-3 ml-1 cursor-pointer"
                   onClick={() => setYearRange({})}
                 />
               </Badge>

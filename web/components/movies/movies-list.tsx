@@ -2,12 +2,7 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, Clock, Calendar, Loader2 } from "lucide-react";
 import { Movie } from "@/app/movies/page";
@@ -27,7 +22,7 @@ export function MoviesList({
   onMovieClick,
   onLoadMore,
 }: MoviesListProps) {
-  const observerRef = useRef<IntersectionObserver>();
+  const observerRef = useRef<IntersectionObserver | null>(null);
   const lastMovieElementRef = useRef<HTMLDivElement>(null);
 
   const lastMovieRef = useCallback(
@@ -71,7 +66,7 @@ export function MoviesList({
             key={movie.id}
             ref={index === movies.length - 1 ? lastMovieRef : null}
           >
-            <Card 
+            <Card
               className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105"
               onClick={() => onMovieClick(movie)}
             >
@@ -96,7 +91,10 @@ export function MoviesList({
                     </Badge>
                   )}
                   {movie.rated && (
-                    <Badge variant="secondary" className="absolute top-2 left-2">
+                    <Badge
+                      variant="secondary"
+                      className="absolute top-2 left-2"
+                    >
                       {movie.rated}
                     </Badge>
                   )}
@@ -106,7 +104,7 @@ export function MoviesList({
                 <CardTitle className="text-sm line-clamp-2 min-h-[2.5rem]">
                   {movie.title}
                 </CardTitle>
-                
+
                 {movie.plot && (
                   <p className="text-xs text-muted-foreground line-clamp-3">
                     {movie.plot}
@@ -116,8 +114,12 @@ export function MoviesList({
                 <div className="space-y-2">
                   {movie.genres && movie.genres.length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                      {movie.genres.slice(0, 2).map(genre => (
-                        <Badge key={genre} variant="outline" className="text-xs">
+                      {movie.genres.slice(0, 2).map((genre) => (
+                        <Badge
+                          key={genre}
+                          variant="outline"
+                          className="text-xs"
+                        >
                           {genre}
                         </Badge>
                       ))}
@@ -136,7 +138,7 @@ export function MoviesList({
                         <span>{movie.imdb.rating}</span>
                       </div>
                     )}
-                    
+
                     {movie.runtime && (
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />

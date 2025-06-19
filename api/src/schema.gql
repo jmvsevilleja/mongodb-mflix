@@ -17,13 +17,31 @@ input AllMoviesInput {
   yearTo: Int
 }
 
+type Awards {
+  nominations: Int
+  text: String
+  wins: Int
+}
+
+type Critic {
+  meter: Int
+  numReviews: Int
+  rating: Float
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
 
+type Imdb {
+  id: Int
+  rating: Float
+  votes: Int
+}
+
 type Movie {
-  awards: Object
+  awards: Awards
   cast: [String!]
   countries: [String!]
   createdAt: DateTime
@@ -31,7 +49,9 @@ type Movie {
   fullplot: String
   genres: [String!]
   id: ID!
-  imdb: Object
+  imdb: Imdb
+  isLiked: Boolean
+  isViewed: Boolean
   languages: [String!]
   lastupdated: String
   num_mflix_comments: Int
@@ -41,7 +61,7 @@ type Movie {
   released: DateTime
   runtime: Int
   title: String!
-  tomatoes: Object
+  tomatoes: Tomatoes
   type: String
   updatedAt: DateTime
   year: Int
@@ -63,13 +83,22 @@ type MoviesResponse {
   totalCount: Int!
 }
 
-"""
-The `Object` scalar type represents an arbitrary object.
-"""
-scalar Object
-
 type Query {
   movie(id: ID!): Movie
   movieFilters: MovieFilters!
   movies(input: AllMoviesInput!): MoviesResponse!
+}
+
+type Tomatoes {
+  critic: Critic
+  fresh: Int
+  lastUpdated: DateTime
+  rotten: Int
+  viewer: Viewer
+}
+
+type Viewer {
+  meter: Int
+  numReviews: Int
+  rating: Float
 }

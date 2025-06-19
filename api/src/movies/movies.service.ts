@@ -36,7 +36,7 @@ export class MoviesService {
     if (searchTerm) {
       pipeline.push({
         $search: {
-          index: 'movies_search', // You'll need to create this index in Atlas
+          index: 'default', // You'll need to create this index in Atlas
           compound: {
             should: [
               {
@@ -63,6 +63,7 @@ export class MoviesService {
             ],
             minimumShouldMatch: 1,
           },
+          sort: { score: { $meta: 'searchScore', order: -1 } }, // Moved sort here
         },
       });
     }
@@ -97,38 +98,40 @@ export class MoviesService {
       pipeline.push({ $match: matchStage });
     }
 
-    // Add metadata for scoring if using search
-    if (searchTerm) {
-      pipeline.push({
-        $addFields: {
-          score: { $meta: 'searchScore' },
-        },
-      });
-    }
+    // Remove the $addFields for score as it's no longer needed here
+    // if (searchTerm) {
+    //   pipeline.push({
+    //     $addFields: {
+    //       score: { $meta: 'searchScore' },
+    //     },
+    //   });
+    // }
 
     // Count total documents
     const countPipeline = [...pipeline, { $count: 'total' }];
     const countResult = await this.movieModel.aggregate(countPipeline);
     const totalCount = countResult[0]?.total || 0;
 
-    // Sort stage
-    const sortStage: any = {};
-    if (searchTerm) {
-      sortStage.score = { $meta: 'searchScore' };
-    } else {
+    // Sort stage - only apply if no search term, otherwise search handles sorting
+    if (!searchTerm) {
+      const sortStage: any = {};
       sortStage[sortBy] = sortOrder === 'desc' ? -1 : 1;
+      pipeline.push({ $sort: sortStage });
     }
-    pipeline.push({ $sort: sortStage });
 
     // Pagination
     pipeline.push({ $skip: (page - 1) * limit });
     pipeline.push({ $limit: limit });
-
     // Execute aggregation
     const movies = await this.movieModel.aggregate(pipeline);
 
+    // Convert each movie document to JSON to apply virtuals/transformations
+    const jsonMovies = movies.map((movie) =>
+      this.movieModel.hydrate(movie).toJSON(),
+    );
+
     return {
-      movies,
+      movies: jsonMovies,
       totalCount,
       hasMore: (page - 1) * limit + movies.length < totalCount,
     };
