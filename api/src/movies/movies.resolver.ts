@@ -1,23 +1,34 @@
-import { Resolver, Query, Mutation, Args, ID, Int } from '@nestjs/graphql';
+import { Resolver, Query, Args, ID } from '@nestjs/graphql';
 import { MoviesService } from './movies.service';
-import { Movie } from './models/movie.model';
-import { AllMoviesInput } from './dto/all-movies.input'; // Import the new DTO
+import { Movie, MoviesResponse, MovieFilters } from './models/movie.model';
+import { AllMoviesInput } from './dto/all-movies.input';
 
 @Resolver(() => Movie)
 export class MoviesResolver {
   constructor(private readonly moviesService: MoviesService) {}
 
-  @Query(() => [Movie], { name: 'allMovies' })
-  async allMovies(
-    @Args('input') input: AllMoviesInput, // Use the DTO here
-  ): Promise<Movie[]> {
-    const { page, limit, searchTerm, sortBy, sortOrder } = input;
-    return this.moviesService.findAll(
-      page,
-      limit,
-      searchTerm,
-      sortBy,
-      sortOrder,
-    );
+  @Query(() => MoviesResponse, { name: 'movies' })
+  async getMovies(
+    @Args('input') input: AllMoviesInput,
+  ): Promise<MoviesResponse> {
+    const result = await this.moviesService.findAll(input);
+    const filters = await this.moviesService.getFilters();
+
+    return {
+      movies: result.movies,
+      totalCount: result.totalCount,
+      hasMore: result.hasMore,
+      filters,
+    };
+  }
+
+  @Query(() => Movie, { name: 'movie', nullable: true })
+  async getMovie(@Args('id', { type: () => ID }) id: string): Promise<Movie | null> {
+    return this.moviesService.findById(id);
+  }
+
+  @Query(() => MovieFilters, { name: 'movieFilters' })
+  async getMovieFilters(): Promise<MovieFilters> {
+    return this.moviesService.getFilters();
   }
 }

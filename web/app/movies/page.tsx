@@ -1,285 +1,369 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
-import Image from "next/image";
-import { useQuery, useMutation } from "@apollo/client";
+import { useState, useEffect, useCallback } from "react";
+import { useQuery } from "@apollo/client";
 import { gql } from "@apollo/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { MainHeader } from "@/components/layout/main-header";
-import { Heart, Eye, ShoppingCart } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { MoviesList } from "../../components/movies/movies-list";
+import { MovieFilters } from "../../components/movies/movie-filters";
+import { MovieDetailModal } from "../../components/movies/movie-detail-modal";
+import { Search, Filter, X } from "lucide-react";
+import { useDebounce } from "@/hooks/use-debounce";
 
-// Update GraphQL query to include pagination and sorting parameters
-const GET_ALL_MOVIES = gql`
-  query GetAllMovies(
-    $input: AllMoviesInput! # Changed to use the AllMoviesInput DTO
-  ) {
-    allMovies(
-      input: $input # Pass the entire input object
-    ) {
+const GET_MOVIES = gql`
+  query GetMovies($input: AllMoviesInput!) {
+    movies(input: $input) {
+      movies {
+        id
+        title
+        plot
+        poster
+        year
+        genres
+        rated
+        runtime
+        imdb
+        directors
+        cast
+      }
+      totalCount
+      hasMore
+      filters {
+        genres
+        ratings
+        languages
+        countries
+        minYear
+        maxYear
+      }
+    }
+  }
+`;
+
+const GET_MOVIE_DETAIL = gql`
+  query GetMovie($id: ID!) {
+    movie(id: $id) {
       id
-      name
-      imageUrl
-      views
-      likes
-      isLiked
-      isViewed
-      createdAt
-      updatedAt
+      title
+      plot
+      fullplot
+      poster
+      year
+      genres
+      rated
+      runtime
+      imdb
+      directors
+      cast
+      languages
+      countries
+      released
+      awards
+      tomatoes
+      type
     }
   }
 `;
 
 export interface Movie {
   id: string;
-  name: string;
-  imageUrl: string;
-  views: number;
-  likes: number;
-  createdAt: Date;
-  isLiked?: boolean;
-  isViewed?: boolean;
+  title: string;
+  plot?: string;
+  fullplot?: string;
+  poster?: string;
+  year?: number;
+  genres?: string[];
+  rated?: string;
+  runtime?: number;
+  imdb?: any;
+  directors?: string[];
+  cast?: string[];
+  languages?: string[];
+  countries?: string[];
+  released?: Date;
+  awards?: any;
+  tomatoes?: any;
+  type?: string;
+}
+
+export interface MovieFiltersType {
+  genres: string[];
+  ratings: string[];
+  languages: string[];
+  countries: string[];
+  minYear: number;
+  maxYear: number;
 }
 
 export default function MoviesPage() {
-  const { data: session } = useSession();
-  const router = useRouter();
-  const { toast } = useToast();
-
-  // State for movies and UI
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-
-  // State for image viewing
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-  const [showCreditPrompt, setShowCreditPrompt] = useState(false);
-  const [viewedMovies, setViewedMovies] = useState<Set<string>>(new Set());
-
-  // GraphQL queries and mutations
-
-  // State for pagination and filtering
-  const [page, setPage] = useState(1);
+  // Search and filter state
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"createdAt" | "views" | "likes">(
-    "createdAt"
-  );
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [selectedRating, setSelectedRating] = useState<string>("");
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<string>("");
+  const [yearRange, setYearRange] = useState<{ from?: number; to?: number }>({});
+  const [sortBy, setSortBy] = useState<string>("year");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  
+  // UI state
+  const [page, setPage] = useState(1);
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
   const [allMovies, setAllMovies] = useState<Movie[]>([]);
-  const [displayedMovies, setDisplayedMovies] = useState<Movie[]>([]);
-  const [hasMoreMovies, setHasMoreMovies] = useState(true);
 
-  // Fetch movies with pagination
-  const { data, loading, error, fetchMore } = useQuery(GET_ALL_MOVIES, {
+  // Debounce search term
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+    setAllMovies([]);
+  }, [debouncedSearchTerm, selectedGenres, selectedRating, selectedLanguages, selectedCountry, yearRange, sortBy, sortOrder]);
+
+  // Fetch movies
+  const { data, loading, error, fetchMore } = useQuery(GET_MOVIES, {
     variables: {
       input: {
         page,
         limit: 20,
-        searchTerm,
+        searchTerm: debouncedSearchTerm,
+        genres: selectedGenres.length > 0 ? selectedGenres : undefined,
+        rated: selectedRating || undefined,
+        languages: selectedLanguages.length > 0 ? selectedLanguages : undefined,
+        country: selectedCountry || undefined,
+        yearFrom: yearRange.from,
+        yearTo: yearRange.to,
         sortBy,
         sortOrder,
-        userId: session?.user?.id,
       },
     },
     onCompleted: (data) => {
-      if (data.allMovies.length === 0) {
-        setHasMoreMovies(false);
-        return;
-      }
-
       if (page === 1) {
-        setAllMovies(data.allMovies);
-        setDisplayedMovies(data.allMovies);
+        setAllMovies(data.movies.movies);
       } else {
-        setAllMovies((prev) => [...prev, ...data.allMovies]);
-        setDisplayedMovies((prev) => [...prev, ...data.allMovies]);
+        setAllMovies(prev => [...prev, ...data.movies.movies]);
       }
     },
   });
 
-  // Handle loading more movies
-  const loadMoreMovies = () => {
-    if (!loading && hasMoreMovies) {
-      setPage((prev) => prev + 1);
+  // Fetch movie detail
+  const { data: movieDetailData, loading: movieDetailLoading } = useQuery(GET_MOVIE_DETAIL, {
+    variables: { id: selectedMovie?.id || "" },
+    skip: !selectedMovie?.id,
+  });
+
+  const loadMoreMovies = useCallback(() => {
+    if (!loading && data?.movies.hasMore) {
+      setPage(prev => prev + 1);
     }
+  }, [loading, data?.movies.hasMore]);
+
+  const handleMovieClick = (movie: Movie) => {
+    setSelectedMovie(movie);
   };
 
-  // Implement search and filter logic
-  useEffect(() => {
-    if (searchTerm) {
-      const filtered = allMovies.filter((face) =>
-        face.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setDisplayedMovies(filtered);
-    } else {
-      setDisplayedMovies(allMovies);
-    }
-  }, [searchTerm, allMovies]);
-
-  // Implement sorting logic
-  useEffect(() => {
-    const sorted = [...displayedMovies].sort((a, b) => {
-      if (sortOrder === "asc") {
-        return a[sortBy] > b[sortBy] ? 1 : -1;
-      } else {
-        return a[sortBy] < b[sortBy] ? 1 : -1;
-      }
-    });
-    setDisplayedMovies(sorted);
-  }, [sortBy, sortOrder]);
-
-  // Scroll event listener
-  useEffect(() => {
-    const handleScroll = () => {
-      if (
-        window.innerHeight + document.documentElement.scrollTop >=
-        document.documentElement.offsetHeight - 1000
-      ) {
-        loadMoreMovies();
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [loadMoreMovies]);
-
-  // Event Handlers
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
-    setCurrentPage(1); // Reset to first page on new search
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedGenres([]);
+    setSelectedRating("");
+    setSelectedLanguages([]);
+    setSelectedCountry("");
+    setYearRange({});
+    setSortBy("year");
+    setSortOrder("desc");
   };
 
-  const handleSortByChange = (value: "createdAt" | "views" | "likes") => {
-    // if (value === "createdAt") {
-    //   setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    // }
-    setSortBy(value);
-    setCurrentPage(1);
-  };
+  const hasActiveFilters = 
+    debouncedSearchTerm ||
+    selectedGenres.length > 0 ||
+    selectedRating ||
+    selectedLanguages.length > 0 ||
+    selectedCountry ||
+    yearRange.from ||
+    yearRange.to;
+
+  const movieFilters = data?.movies.filters;
 
   return (
     <div className="flex min-h-screen flex-col">
       <MainHeader />
 
-      <main className="container flex-1 py-8 space-y-8">
-        {/* Search and Filter Section */}
-
-        <div className="mb-6 flex flex-col gap-4 md:mb-8 md:flex-row md:items-center md:justify-between">
-          <div className="flex-grow md:max-w-xs">
-            <Input
-              type="search"
-              placeholder="Search movies by name..."
-              className="w-full"
-              value={searchTerm}
-              onChange={handleSearchChange}
-            />
-          </div>
+      <main className="container flex-1 py-8 space-y-6">
+        {/* Header */}
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold">Movie Search</h1>
+          <p className="text-muted-foreground">
+            Discover movies with advanced search and filtering
+          </p>
         </div>
 
-        {/* Movies List */}
-        <MoviesList
-          displayedMovies={displayedMovies}
-          searchTerm={searchTerm}
-          isLoadingMore={isLoadingMore}
-          hasMoreMovies={hasMoreMovies}
-        />
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search movies by title or plot..."
+            className="pl-9 pr-4"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
 
-        {/* Loading More Indicator */}
+        {/* Filter Controls */}
+        <div className="flex flex-wrap items-center gap-4">
+          <Button
+            variant="outline"
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2"
+          >
+            <Filter className="h-4 w-4" />
+            Filters
+            {hasActiveFilters && (
+              <Badge variant="secondary" className="ml-1">
+                Active
+              </Badge>
+            )}
+          </Button>
+
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="year">Year</SelectItem>
+              <SelectItem value="title">Title</SelectItem>
+              <SelectItem value="imdb.rating">IMDB Rating</SelectItem>
+              <SelectItem value="runtime">Runtime</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={sortOrder} onValueChange={(value: "asc" | "desc") => setSortOrder(value)}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="desc">Descending</SelectItem>
+              <SelectItem value="asc">Ascending</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {hasActiveFilters && (
+            <Button variant="ghost" onClick={clearFilters} className="flex items-center gap-2">
+              <X className="h-4 w-4" />
+              Clear Filters
+            </Button>
+          )}
+        </div>
+
+        {/* Active Filters Display */}
+        {hasActiveFilters && (
+          <div className="flex flex-wrap gap-2">
+            {debouncedSearchTerm && (
+              <Badge variant="secondary">
+                Search: {debouncedSearchTerm}
+              </Badge>
+            )}
+            {selectedGenres.map(genre => (
+              <Badge key={genre} variant="secondary">
+                Genre: {genre}
+                <X 
+                  className="h-3 w-3 ml-1 cursor-pointer" 
+                  onClick={() => setSelectedGenres(prev => prev.filter(g => g !== genre))}
+                />
+              </Badge>
+            ))}
+            {selectedRating && (
+              <Badge variant="secondary">
+                Rating: {selectedRating}
+                <X 
+                  className="h-3 w-3 ml-1 cursor-pointer" 
+                  onClick={() => setSelectedRating("")}
+                />
+              </Badge>
+            )}
+            {selectedLanguages.map(lang => (
+              <Badge key={lang} variant="secondary">
+                Language: {lang}
+                <X 
+                  className="h-3 w-3 ml-1 cursor-pointer" 
+                  onClick={() => setSelectedLanguages(prev => prev.filter(l => l !== lang))}
+                />
+              </Badge>
+            ))}
+            {selectedCountry && (
+              <Badge variant="secondary">
+                Country: {selectedCountry}
+                <X 
+                  className="h-3 w-3 ml-1 cursor-pointer" 
+                  onClick={() => setSelectedCountry("")}
+                />
+              </Badge>
+            )}
+            {(yearRange.from || yearRange.to) && (
+              <Badge variant="secondary">
+                Year: {yearRange.from || "Any"} - {yearRange.to || "Any"}
+                <X 
+                  className="h-3 w-3 ml-1 cursor-pointer" 
+                  onClick={() => setYearRange({})}
+                />
+              </Badge>
+            )}
+          </div>
+        )}
+
+        {/* Filters Panel */}
+        {showFilters && movieFilters && (
+          <MovieFilters
+            filters={movieFilters}
+            selectedGenres={selectedGenres}
+            selectedRating={selectedRating}
+            selectedLanguages={selectedLanguages}
+            selectedCountry={selectedCountry}
+            yearRange={yearRange}
+            onGenresChange={setSelectedGenres}
+            onRatingChange={setSelectedRating}
+            onLanguagesChange={setSelectedLanguages}
+            onCountryChange={setSelectedCountry}
+            onYearRangeChange={setYearRange}
+          />
+        )}
+
+        {/* Results */}
+        <div className="space-y-4">
+          {data?.movies.totalCount > 0 && (
+            <p className="text-sm text-muted-foreground">
+              Found {data.movies.totalCount.toLocaleString()} movies
+            </p>
+          )}
+
+          <MoviesList
+            movies={allMovies}
+            loading={loading}
+            hasMore={data?.movies.hasMore || false}
+            onMovieClick={handleMovieClick}
+            onLoadMore={loadMoreMovies}
+          />
+        </div>
       </main>
 
-      {/* Image View Dialog */}
-      <Dialog
-        open={!!selectedMovie}
-        onOpenChange={() => setSelectedMovie(null)}
-      >
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{selectedMovie?.name}</DialogTitle>
-            <DialogDescription>
-              {viewedMovies.has(selectedMovie?.id || "")
-                ? "Viewing larger image (no credit will be deducted)"
-                : "Viewing this larger image will deduct 1 credit from your wallet"}
-            </DialogDescription>
-          </DialogHeader>
-          {selectedMovie && (
-            <div className="space-y-4">
-              <div className="aspect-square w-full overflow-hidden rounded-lg">
-                <Image
-                  src={selectedMovie.imageUrl}
-                  alt={`Large view of ${selectedMovie.name}`}
-                  width={600}
-                  height={600}
-                  className="object-cover w-full h-full"
-                  unoptimized
-                />
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1">
-                    <Eye className="h-4 w-4" />
-                    <span>{selectedMovie.views.toLocaleString()} views</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Heart className="h-4 w-4" />
-                    <span>{selectedMovie.likes.toLocaleString()} likes</span>
-                  </div>
-                </div>
-                <Button
-                  variant={selectedMovie.isLiked ? "default" : "outline"}
-                  size="sm"
-                >
-                  <Heart
-                    className={`h-4 w-4 mr-2 ${
-                      selectedMovie.isLiked ? "fill-current" : ""
-                    }`}
-                  />
-                  {selectedMovie.isLiked ? "Liked" : "Like"}
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Credit Purchase Prompt Dialog */}
-      <Dialog open={showCreditPrompt} onOpenChange={setShowCreditPrompt}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Insufficient Credits</DialogTitle>
-            <DialogDescription>
-              You need at least 1 credit to view larger images. Purchase credits
-              to continue.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex gap-4 justify-end">
-            <Button
-              variant="outline"
-              onClick={() => setShowCreditPrompt(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                setShowCreditPrompt(false);
-                router.push("/wallet");
-              }}
-            >
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              Purchase Credits
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Movie Detail Modal */}
+      <MovieDetailModal
+        movie={selectedMovie}
+        movieDetail={movieDetailData?.movie}
+        loading={movieDetailLoading}
+        onClose={() => setSelectedMovie(null)}
+      />
     </div>
   );
 }

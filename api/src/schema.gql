@@ -3,12 +3,18 @@
 # ------------------------------------------------------
 
 input AllMoviesInput {
-  limit: Int! = 10
+  country: String
+  genres: [String!]
+  languages: [String!]
+  limit: Int! = 20
   page: Int! = 1
+  rated: String
   searchTerm: String
   sortBy: String
   sortOrder: String
-  userId: String
+  year: Int
+  yearFrom: Int
+  yearTo: Int
 }
 
 """
@@ -16,19 +22,54 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
-type Face {
+type Movie {
+  awards: Object
+  cast: [String!]
+  countries: [String!]
   createdAt: DateTime
+  directors: [String!]
+  fullplot: String
+  genres: [String!]
   id: ID!
-  imageUrl: String!
-  isLiked: Boolean
-  isViewed: Boolean
-  likes: Int!
-  name: String!
+  imdb: Object
+  languages: [String!]
+  lastupdated: String
+  num_mflix_comments: Int
+  plot: String
+  poster: String
+  rated: String
+  released: DateTime
+  runtime: Int
+  title: String!
+  tomatoes: Object
+  type: String
   updatedAt: DateTime
-  userId: String!
-  views: Int!
+  year: Int
 }
 
+type MovieFilters {
+  countries: [String!]!
+  genres: [String!]!
+  languages: [String!]!
+  maxYear: Int!
+  minYear: Int!
+  ratings: [String!]!
+}
+
+type MoviesResponse {
+  filters: MovieFilters!
+  hasMore: Boolean!
+  movies: [Movie!]!
+  totalCount: Int!
+}
+
+"""
+The `Object` scalar type represents an arbitrary object.
+"""
+scalar Object
+
 type Query {
-  allMovies(input: AllMoviesInput!): [Face!]!
+  movie(id: ID!): Movie
+  movieFilters: MovieFilters!
+  movies(input: AllMoviesInput!): MoviesResponse!
 }

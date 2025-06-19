@@ -1,104 +1,175 @@
+"use client";
+
+import { useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import {
   Card,
   CardHeader,
   CardContent,
-  CardFooter,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Eye, Heart, Loader2 } from "lucide-react";
-import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
+import { Star, Clock, Calendar, Loader2 } from "lucide-react";
 import { Movie } from "@/app/movies/page";
 
-type MoviesListProps = {
-  displayedMovies: Movie[];
-  searchTerm: string;
-  isLoadingMore: boolean;
-  hasMoreMovies: boolean;
-};
+interface MoviesListProps {
+  movies: Movie[];
+  loading: boolean;
+  hasMore: boolean;
+  onMovieClick: (movie: Movie) => void;
+  onLoadMore: () => void;
+}
 
 export function MoviesList({
-  displayedMovies,
-  searchTerm,
-  isLoadingMore,
-  hasMoreMovies,
+  movies,
+  loading,
+  hasMore,
+  onMovieClick,
+  onLoadMore,
 }: MoviesListProps) {
+  const observerRef = useRef<IntersectionObserver>();
+  const lastMovieElementRef = useRef<HTMLDivElement>(null);
+
+  const lastMovieRef = useCallback(
+    (node: HTMLDivElement) => {
+      if (loading) return;
+      if (observerRef.current) observerRef.current.disconnect();
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          onLoadMore();
+        }
+      });
+      if (node) observerRef.current.observe(node);
+    },
+    [loading, hasMore, onLoadMore]
+  );
+
+  if (loading && movies.length === 0) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (movies.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <h3 className="text-lg font-medium">No movies found</h3>
+        <p className="text-muted-foreground">
+          Try adjusting your search or filters
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <section className="mb-8 md:mb-10">
-      <h2 className="mb-4 text-xl font-semibold md:mb-6 md:text-2xl">
-        {searchTerm ? `Results for "${searchTerm}"` : "Movie Gallery"}
-      </h2>
-      {displayedMovies.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
-          {displayedMovies.map((movie) => (
-            <Card
-              key={movie.id}
-              className="flex flex-col overflow-hidden shadow-lg transition-shadow duration-300 ease-in-out hover:shadow-xl dark:border-gray-700 cursor-pointer"
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        {movies.map((movie, index) => (
+          <div
+            key={movie.id}
+            ref={index === movies.length - 1 ? lastMovieRef : null}
+          >
+            <Card 
+              className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105"
+              onClick={() => onMovieClick(movie)}
             >
-              <CardHeader className="relative p-0">
-                <div className="aspect-square w-full overflow-hidden">
-                  <Image
-                    src={movie.imageUrl}
-                    alt={`Movie of ${movie.name}`}
-                    width={300}
-                    height={300}
-                    className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
-                    priority={false}
-                    unoptimized
-                  />
+              <CardHeader className="p-0">
+                <div className="aspect-[2/3] relative overflow-hidden rounded-t-lg">
+                  {movie.poster ? (
+                    <Image
+                      src={movie.poster}
+                      alt={movie.title}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                      <span className="text-muted-foreground">No Image</span>
+                    </div>
+                  )}
+                  {movie.year && (
+                    <Badge className="absolute top-2 right-2">
+                      {movie.year}
+                    </Badge>
+                  )}
+                  {movie.rated && (
+                    <Badge variant="secondary" className="absolute top-2 left-2">
+                      {movie.rated}
+                    </Badge>
+                  )}
                 </div>
               </CardHeader>
-              <CardContent className="flex-grow p-4">
-                <CardTitle
-                  className="mb-1 text-lg font-semibold line-clamp-1"
-                  title={movie.name}
-                >
-                  {movie.name}
+              <CardContent className="p-4 space-y-3">
+                <CardTitle className="text-sm line-clamp-2 min-h-[2.5rem]">
+                  {movie.title}
                 </CardTitle>
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  <p>
-                    Created:{" "}
-                    {movie.createdAt ? movie.createdAt.toLocaleString() : ""}
+                
+                {movie.plot && (
+                  <p className="text-xs text-muted-foreground line-clamp-3">
+                    {movie.plot}
                   </p>
-                </div>
-                <div className="mt-2 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
-                  <div className="flex items-center gap-1">
-                    <Eye className="h-3 w-3" />
-                    <span>{movie.views.toLocaleString()}</span>
+                )}
+
+                <div className="space-y-2">
+                  {movie.genres && movie.genres.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {movie.genres.slice(0, 2).map(genre => (
+                        <Badge key={genre} variant="outline" className="text-xs">
+                          {genre}
+                        </Badge>
+                      ))}
+                      {movie.genres.length > 2 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{movie.genres.length - 2}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    {movie.imdb?.rating && (
+                      <div className="flex items-center gap-1">
+                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                        <span>{movie.imdb.rating}</span>
+                      </div>
+                    )}
+                    
+                    {movie.runtime && (
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>{movie.runtime}m</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Heart className="h-3 w-3" />
-                    <span>{movie.likes.toLocaleString()}</span>
-                  </div>
+
+                  {movie.directors && movie.directors.length > 0 && (
+                    <p className="text-xs text-muted-foreground line-clamp-1">
+                      Dir: {movie.directors.join(", ")}
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
-      ) : (
-        <p className="text-center text-gray-500 dark:text-gray-400">
-          No movies found matching your criteria.
-        </p>
-      )}
-
-      {/* Loading indicator */}
-      {isLoadingMore && (
-        <div className="flex justify-center mt-8">
-          <div className="flex items-center gap-2">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <span>Loading more movies...</span>
           </div>
+        ))}
+      </div>
+
+      {loading && (
+        <div className="flex justify-center py-4">
+          <Loader2 className="h-6 w-6 animate-spin" />
         </div>
       )}
 
-      {/* End of results indicator */}
-      {!hasMoreMovies && displayedMovies.length > 0 && (
-        <div className="text-center mt-8">
+      {!hasMore && movies.length > 0 && (
+        <div className="text-center py-4">
           <p className="text-muted-foreground">
-            You've reached the end of the gallery!
+            You've reached the end of the results
           </p>
         </div>
       )}
-    </section>
+    </div>
   );
 }

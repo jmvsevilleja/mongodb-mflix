@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID, Int } from '@nestjs/graphql';
+import { ObjectType, Field, ID, Int, Float } from '@nestjs/graphql';
 
 @ObjectType()
 export class Movie {
@@ -6,34 +6,13 @@ export class Movie {
   id: string;
 
   @Field()
-  name: string;
-
-  @Field()
-  imageUrl: string;
-
-  @Field(() => Int)
-  views: number;
-
-  @Field(() => Int)
-  likes: number;
-
-  @Field({ nullable: true })
-  createdAt?: Date;
-
-  @Field({ nullable: true })
-  updatedAt?: Date;
-
-  @Field({ nullable: true })
-  isLiked?: boolean;
-
-  @Field({ nullable: true })
-  isViewed?: boolean;
-
-  @Field()
-  userId: string;
+  title: string;
 
   @Field({ nullable: true })
   plot?: string;
+
+  @Field({ nullable: true })
+  fullplot?: string;
 
   @Field(() => [String], { nullable: true })
   genres?: string[];
@@ -46,12 +25,6 @@ export class Movie {
 
   @Field({ nullable: true })
   poster?: string;
-
-  @Field()
-  title: string;
-
-  @Field({ nullable: true })
-  fullplot?: string;
 
   @Field(() => [String], { nullable: true })
   languages?: string[];
@@ -88,4 +61,46 @@ export class Movie {
 
   @Field(() => Int, { nullable: true })
   num_mflix_comments?: number;
+
+  @Field({ nullable: true })
+  createdAt?: Date;
+
+  @Field({ nullable: true })
+  updatedAt?: Date;
+}
+
+@ObjectType()
+export class MovieFilters {
+  @Field(() => [String])
+  genres: string[];
+
+  @Field(() => [String])
+  ratings: string[];
+
+  @Field(() => [String])
+  languages: string[];
+
+  @Field(() => [String])
+  countries: string[];
+
+  @Field(() => Int)
+  minYear: number;
+
+  @Field(() => Int)
+  maxYear: number;
+}
+
+@ObjectType()
+export class MoviesResponse {
+  @Field(() => [Movie])
+  movies: Movie[];
+
+  @Field(() => Int)
+  totalCount: number;
+
+  @Field()
+  hasMore: boolean;
+
+  @Field(() => MovieFilters)
+  filters: MovieFilters;
 }
