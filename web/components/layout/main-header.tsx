@@ -17,7 +17,7 @@ export function MainHeader() {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <ListTodo className="h-6 w-6" />
-          <span className="font-semibold">Face App</span>
+          <span className="font-semibold">Movies App</span>
         </div>
 
         <Navigation />
@@ -26,7 +26,7 @@ export function MainHeader() {
           {session ? <WalletDisplay /> : null}
           {session ? <UserAvatar /> : null}
           <ThemeToggle />
-          {session ? (
+          {/* {session ? (
             <Button
               variant="ghost"
               size="icon"
@@ -38,7 +38,7 @@ export function MainHeader() {
             <Link href="/auth/signin">
               <Button variant="ghost">Sign In</Button>
             </Link>
-          )}
+          )} */}
         </div>
       </div>
     </header>

@@ -15,25 +15,25 @@ export function Navigation() {
       icon: Home,
     },
     {
-      href: "/faces", // New "Faces" link
-      label: "Faces",
+      href: "/movies", // New "Faces" link
+      label: "Movies",
       icon: Users, // Using Smile icon for Faces
     },
-    {
-      href: "/dashboard",
-      label: "Todos",
-      icon: ListTodo,
-    },
-    {
-      href: "/profile",
-      label: "Profile",
-      icon: User,
-    },
-    {
-      href: "/wallet",
-      label: "Wallet",
-      icon: Wallet,
-    },
+    // {
+    //   href: "/dashboard",
+    //   label: "Todos",
+    //   icon: ListTodo,
+    // },
+    // {
+    //   href: "/profile",
+    //   label: "Profile",
+    //   icon: User,
+    // },
+    // {
+    //   href: "/wallet",
+    //   label: "Wallet",
+    //   icon: Wallet,
+    // },
   ];
 
   return (
