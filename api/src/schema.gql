@@ -1,0 +1,250 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type AdminTransaction {
+  adminNote: String
+  amount: Float!
+  createdAt: DateTime!
+  credits: Int!
+  description: String
+  id: ID!
+  multiplier: Int!
+  packageType: String
+  paymentProvider: PaymentProvider
+  processedAt: DateTime
+  processedBy: String
+  status: TransactionStatus!
+  transactionId: String
+  type: TransactionType!
+  updatedAt: DateTime!
+  userEmail: String!
+  userId: String!
+  userName: String!
+  walletId: String!
+}
+
+type AdminTransactionConnection {
+  hasMore: Boolean!
+  totalCount: Int!
+  transactions: [AdminTransaction!]!
+}
+
+input AllFacesInput {
+  limit: Int! = 10
+  page: Int! = 1
+  searchTerm: String
+  sortBy: String
+  sortOrder: String
+  userId: String
+}
+
+type AuthResponse {
+  accessToken: String!
+  refreshToken: String!
+  user: User!
+}
+
+input ConfirmPaymentInput {
+  transactionId: String!
+}
+
+input CreatePaymentIntentInput {
+  multiplier: Int = 1
+  packageType: String!
+  paymentProvider: PaymentProvider!
+  transactionId: String!
+}
+
+input CreateTodoInput {
+  description: String
+  title: String!
+}
+
+input CreateUserInput {
+  email: String!
+  googleId: String
+  isGoogleAccount: Boolean
+  name: String!
+  password: String
+  profilePicture: String
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type DeductCreditsResponse {
+  newBalance: Int!
+  success: Boolean!
+}
+
+type Face {
+  createdAt: DateTime
+  id: ID!
+  imageUrl: String!
+  isLiked: Boolean
+  isViewed: Boolean
+  likes: Int!
+  name: String!
+  updatedAt: DateTime
+  userId: String!
+  views: Int!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type Mutation {
+  confirmPayment(input: ConfirmPaymentInput!): Boolean!
+  createPaymentIntent(input: CreatePaymentIntentInput!): PaymentIntent!
+  createTodo(input: CreateTodoInput!): Todo!
+  deductCredits(amount: Int!, description: String!): DeductCreditsResponse!
+  deleteTodo(id: ID!): Boolean!
+  incrementFaceView(faceId: ID!): Face!
+  login(input: LoginInput!): AuthResponse!
+  logout: Boolean!
+  processTransaction(input: ProcessTransactionInput!): Boolean!
+  refreshTokens(refreshToken: String!, userId: String!): AuthResponse!
+  signup(input: CreateUserInput!): AuthResponse!
+  toggleFaceLike(faceId: ID!): Face!
+  updateTodo(id: ID!, input: UpdateTodoInput!): Todo!
+  updateUser(input: UpdateUserInput!): User!
+}
+
+type PaymentIntent {
+  gcashPaymentId: String
+  paypalOrderId: String
+  qrCode: String
+  transactionId: String!
+}
+
+type PaymentPackage {
+  allowMultiple: Boolean!
+  credits: Int!
+  description: String!
+  id: String!
+  name: String!
+  price: Float!
+}
+
+enum PaymentProvider {
+  GCASH
+  PAYPAL
+}
+
+input ProcessTransactionInput {
+  action: TransactionAction!
+  adminNote: String
+  transactionId: String!
+}
+
+type Query {
+  adminTransactions(limit: Int = 20, offset: Int = 0, status: String): AdminTransactionConnection!
+  allFaces(input: AllFacesInput!): [Face!]!
+  me: User!
+  myWallet: Wallet!
+  paymentPackages: [PaymentPackage!]!
+  todo(id: ID!): Todo
+  todos(limit: Int = 10, offset: Int = 0, search: String, sortOrder: String, status: String): TodoConnection!
+  transactionHistory(limit: Int = 10, offset: Int = 0): [Transaction!]!
+  transactionStats: TransactionStats!
+  user(id: ID!): User
+}
+
+type Todo {
+  completed: Boolean!
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  title: String!
+  updatedAt: DateTime!
+  userId: String!
+}
+
+type TodoConnection {
+  hasMore: Boolean!
+  todos: [Todo!]!
+  totalCount: Int!
+}
+
+type Transaction {
+  amount: Float!
+  createdAt: DateTime!
+  credits: Int!
+  description: String
+  id: ID!
+  multiplier: Int!
+  packageType: String
+  paymentProvider: PaymentProvider
+  status: TransactionStatus!
+  transactionId: String
+  type: TransactionType!
+  updatedAt: DateTime!
+  userId: String!
+  walletId: String!
+}
+
+enum TransactionAction {
+  APPROVE
+  REJECT
+}
+
+type TransactionStats {
+  completedTransactions: Int!
+  pendingRevenue: Float!
+  pendingTransactions: Int!
+  rejectedTransactions: Int!
+  totalRevenue: Float!
+  totalTransactions: Int!
+}
+
+enum TransactionStatus {
+  CANCELLED
+  COMPLETED
+  FAILED
+  PENDING
+  REJECTED
+}
+
+enum TransactionType {
+  DEBIT
+  DEPOSIT
+}
+
+input UpdateTodoInput {
+  completed: Boolean
+  description: String
+  title: String
+}
+
+input UpdateUserInput {
+  name: String
+  profilePicture: String
+}
+
+type User {
+  createdAt: DateTime!
+  email: String!
+  id: ID!
+  name: String!
+  profilePicture: String
+  role: UserRole!
+  updatedAt: DateTime!
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+type Wallet {
+  createdAt: DateTime!
+  credits: Int!
+  id: ID!
+  updatedAt: DateTime!
+  userId: String!
+}
