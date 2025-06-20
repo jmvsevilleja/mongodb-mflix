@@ -103,14 +103,31 @@ export interface Movie {
   genres?: string[];
   rated?: string;
   runtime?: number;
-  imdb?: any;
+  imdb?: {
+    rating?: number;
+    votes?: number;
+    id?: string;
+  };
   directors?: string[];
   cast?: string[];
   languages?: string[];
   countries?: string[];
   released?: Date;
-  awards?: any;
-  tomatoes?: any;
+  awards?: {
+    wins: number;
+    nominations: number;
+    text: string;
+  };
+  tomatoes?: {
+    viewer?: {
+      rating?: number;
+      numReviews?: number;
+    };
+    critic?: {
+      rating?: number;
+      numReviews?: number;
+    };
+  };
   type?: string;
 }
 
@@ -157,7 +174,7 @@ export default function MoviesPage() {
   ]);
 
   // Fetch movies
-  const { data, loading, error, fetchMore } = useQuery(GET_MOVIES, {
+  const { data, loading } = useQuery(GET_MOVIES, {
     variables: {
       input: {
         page,

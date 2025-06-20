@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useRef, useCallback } from "react";
 import Image from "next/image";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, Clock, Calendar, Loader2 } from "lucide-react";
+import { Star, Clock, Loader2 } from "lucide-react";
 import { Movie } from "@/app/movies/page";
 
 interface MoviesListProps {
@@ -23,7 +23,6 @@ export function MoviesList({
   onLoadMore,
 }: MoviesListProps) {
   const observerRef = useRef<IntersectionObserver | null>(null);
-  const lastMovieElementRef = useRef<HTMLDivElement>(null);
 
   const lastMovieRef = useCallback(
     (node: HTMLDivElement) => {
@@ -168,7 +167,7 @@ export function MoviesList({
       {!hasMore && movies.length > 0 && (
         <div className="text-center py-4">
           <p className="text-muted-foreground">
-            You've reached the end of the results
+            You&apos;ve reached the end of the results
           </p>
         </div>
       )}
