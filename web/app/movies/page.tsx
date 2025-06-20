@@ -130,9 +130,6 @@ export default function MoviesPage() {
   const [selectedRating, setSelectedRating] = useState<string>("");
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [selectedCountry, setSelectedCountry] = useState<string>("");
-  const [yearRange, setYearRange] = useState<{ from?: number; to?: number }>(
-    {}
-  );
   const [sortBy, setSortBy] = useState<string>("year");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
@@ -155,7 +152,6 @@ export default function MoviesPage() {
     selectedRating,
     selectedLanguages,
     selectedCountry,
-    yearRange,
     sortBy,
     sortOrder,
   ]);
@@ -171,8 +167,6 @@ export default function MoviesPage() {
         rated: selectedRating || undefined,
         languages: selectedLanguages.length > 0 ? selectedLanguages : undefined,
         country: selectedCountry || undefined,
-        minYear: yearRange.from,
-        maxYear: yearRange.to,
         sortBy,
         sortOrder,
       },
@@ -211,7 +205,6 @@ export default function MoviesPage() {
     setSelectedRating("");
     setSelectedLanguages([]);
     setSelectedCountry("");
-    setYearRange({});
     setSortBy("year");
     setSortOrder("desc");
   };
@@ -221,9 +214,7 @@ export default function MoviesPage() {
     selectedGenres.length > 0 ||
     selectedRating ||
     selectedLanguages.length > 0 ||
-    selectedCountry ||
-    yearRange.from ||
-    yearRange.to;
+    selectedCountry;
 
   const movieFilters = data?.movies.filters;
 
@@ -353,15 +344,6 @@ export default function MoviesPage() {
                 />
               </Badge>
             )}
-            {(yearRange.from || yearRange.to) && (
-              <Badge variant="secondary">
-                Year: {yearRange.from || "Any"} - {yearRange.to || "Any"}
-                <X
-                  className="h-3 w-3 ml-1 cursor-pointer"
-                  onClick={() => setYearRange({})}
-                />
-              </Badge>
-            )}
           </div>
         )}
 
@@ -373,12 +355,10 @@ export default function MoviesPage() {
             selectedRating={selectedRating}
             selectedLanguages={selectedLanguages}
             selectedCountry={selectedCountry}
-            yearRange={yearRange}
             onGenresChange={setSelectedGenres}
             onRatingChange={setSelectedRating}
             onLanguagesChange={setSelectedLanguages}
             onCountryChange={setSelectedCountry}
-            onYearRangeChange={setYearRange}
           />
         )}
 

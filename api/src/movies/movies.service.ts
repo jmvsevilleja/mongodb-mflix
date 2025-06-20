@@ -98,14 +98,51 @@ export class MoviesService {
       pipeline.push({ $match: matchStage });
     }
 
-    // Remove the $addFields for score as it's no longer needed here
-    // if (searchTerm) {
-    //   pipeline.push({
-    //     $addFields: {
-    //       score: { $meta: 'searchScore' },
-    //     },
-    //   });
-    // }
+    // Project stage to handle imdb.rating as float or null
+    pipeline.push({
+      $project: {
+        _id: 1,
+        title: 1,
+        plot: 1,
+        fullplot: 1,
+        genres: 1,
+        runtime: 1,
+        cast: 1,
+        poster: 1,
+        languages: 1,
+        released: 1,
+        directors: 1,
+        rated: 1,
+        awards: 1,
+        lastupdated: 1,
+        year: 1,
+        imdb: {
+          rating: {
+            $cond: {
+              if: { $eq: ['$imdb.rating', ''] },
+              then: null,
+              else: '$imdb.rating',
+            },
+          },
+          votes: {
+            $cond: {
+              if: { $eq: ['$imdb.votes', ''] },
+              then: null,
+              else: '$imdb.votes',
+            },
+          },
+          id: '$imdb.id',
+        },
+        countries: 1,
+        type: 1,
+        tomatoes: 1,
+        num_mflix_comments: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        isLiked: 1,
+        isViewed: 1,
+      },
+    });
 
     // Count total documents
     const countPipeline = [...pipeline, { $count: 'total' }];

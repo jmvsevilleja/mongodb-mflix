@@ -15,10 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { MovieFiltersType } from "@/app/movies/page";
 
@@ -28,12 +26,10 @@ interface MovieFiltersProps {
   selectedRating: string;
   selectedLanguages: string[];
   selectedCountry: string;
-  yearRange: { from?: number; to?: number };
   onGenresChange: (genres: string[]) => void;
   onRatingChange: (rating: string) => void;
   onLanguagesChange: (languages: string[]) => void;
   onCountryChange: (country: string) => void;
-  onYearRangeChange: (range: { from?: number; to?: number }) => void;
 }
 
 export function MovieFilters({
@@ -42,16 +38,11 @@ export function MovieFilters({
   selectedRating,
   selectedLanguages,
   selectedCountry,
-  yearRange,
   onGenresChange,
   onRatingChange,
   onLanguagesChange,
   onCountryChange,
-  onYearRangeChange,
 }: MovieFiltersProps) {
-  const [yearFrom, setYearFrom] = useState(yearRange.from?.toString() || "");
-  const [yearTo, setYearTo] = useState(yearRange.to?.toString() || "");
-
   const handleGenreSelect = (genre: string) => {
     if (!selectedGenres.includes(genre)) {
       onGenresChange([...selectedGenres, genre]);
@@ -70,13 +61,6 @@ export function MovieFilters({
 
   const handleLanguageRemove = (language: string) => {
     onLanguagesChange(selectedLanguages.filter((l) => l !== language));
-  };
-
-  const handleYearRangeUpdate = () => {
-    onYearRangeChange({
-      from: yearFrom ? parseInt(yearFrom) : undefined,
-      to: yearTo ? parseInt(yearTo) : undefined,
-    });
   };
 
   return (
