@@ -1,55 +1,41 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-
-interface EmbeddingResponse {
-  data: Array<{
-    embedding: number[];
-  }>;
-}
+import { Mistral } from '@mistralai/mistralai';
 
 @Injectable()
 export class EmbeddingService {
   private readonly logger = new Logger(EmbeddingService.name);
-  private readonly apiKey: string;
-  private readonly baseUrl = 'https://api.mistral.ai/v1';
+  private readonly mistralClient: Mistral;
 
   constructor(private configService: ConfigService) {
-    this.apiKey = this.configService.get<string>('MISTRAL_API_KEY');
-    if (!this.apiKey) {
+    const apiKey = this.configService.get<string>('MISTRAL_API_KEY');
+    if (!apiKey) {
       this.logger.warn('MISTRAL_API_KEY not found in environment variables');
-    }
-  }
-
-  async createEmbedding(text: string): Promise<number[]> {
-    if (!this.apiKey) {
       throw new Error('Mistral API key not configured');
     }
 
+    this.mistralClient = new Mistral({
+      apiKey: apiKey,
+    });
+  }
+
+  async createEmbedding(text: string): Promise<number[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/embeddings`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'mistral-embed',
-          inputs: [text],
-        }),
+      this.logger.debug(`Creating embedding for text: ${text.substring(0, 100)}...`);
+      
+      const response = await this.mistralClient.embeddings.create({
+        model: 'mistral-embed',
+        inputs: [text],
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Mistral API error: ${response.status} - ${errorText}`);
-      }
-
-      const data: EmbeddingResponse = await response.json();
-      
-      if (!data.data || data.data.length === 0) {
+      if (!response.data || response.data.length === 0) {
         throw new Error('No embedding data received from Mistral API');
       }
 
-      return data.data[0].embedding;
+      const embedding = response.data[0].embedding;
+      this.logger.debug(`Created embedding with ${embedding.length} dimensions`);
+      
+      return embedding;
     } catch (error) {
       this.logger.error('Error creating embedding:', error);
       throw new Error(`Failed to create embedding: ${error.message}`);
@@ -82,31 +68,19 @@ export class EmbeddingService {
   }
 
   async createBatchEmbeddings(texts: string[]): Promise<number[][]> {
-    if (!this.apiKey) {
-      throw new Error('Mistral API key not configured');
-    }
-
     try {
-      const response = await fetch(`${this.baseUrl}/embeddings`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'mistral-embed',
-          inputs: texts,
-        }),
+      this.logger.debug(`Creating batch embeddings for ${texts.length} texts`);
+      
+      const response = await this.mistralClient.embeddings.create({
+        model: 'mistral-embed',
+        inputs: texts,
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Mistral API error: ${response.status} - ${errorText}`);
+      if (!response.data || response.data.length === 0) {
+        throw new Error('No embedding data received from Mistral API');
       }
 
-      const data: EmbeddingResponse = await response.json();
-      
-      return data.data.map(item => item.embedding);
+      return response.data.map(item => item.embedding);
     } catch (error) {
       this.logger.error('Error creating batch embeddings:', error);
       throw new Error(`Failed to create batch embeddings: ${error.message}`);

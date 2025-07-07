@@ -10,6 +10,7 @@ export type MovieDocument = HydratedDocument<Movie>;
       ret.id = ret._id.toString();
       delete ret._id;
       delete ret.__v;
+      delete ret.embedding; // Don't expose embedding in API responses
       return ret;
     },
   },
@@ -74,6 +75,10 @@ export class Movie {
 
   @Prop()
   num_mflix_comments: number;
+
+  // Vector embedding for semantic search
+  @Prop({ type: [Number], select: false }) // Don't include in normal queries
+  embedding: number[];
 }
 
 export const MovieSchema = SchemaFactory.createForClass(Movie);
@@ -87,3 +92,16 @@ MovieSchema.index({ languages: 1 });
 MovieSchema.index({ countries: 1 });
 MovieSchema.index({ 'imdb.rating': -1 });
 MovieSchema.index({ released: -1 });
+
+// Vector search index (this needs to be created in MongoDB Atlas)
+// You'll need to create this index manually in MongoDB Atlas:
+// {
+//   "fields": [
+//     {
+//       "type": "vector",
+//       "path": "embedding",
+//       "numDimensions": 1024,
+//       "similarity": "cosine"
+//     }
+//   ]
+// }

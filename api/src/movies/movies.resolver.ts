@@ -1,4 +1,4 @@
-import { Resolver, Query, Args, ID } from '@nestjs/graphql';
+import { Resolver, Query, Args, ID, Mutation } from '@nestjs/graphql';
 import { MoviesService } from './movies.service';
 import { RecommendationService } from './services/recommendation.service';
 import { Movie, MoviesResponse, MovieFilters } from './models/movie.model';
@@ -62,5 +62,21 @@ export class MoviesResolver {
       hasMore: result.hasMore,
       searchDescription: input.description,
     };
+  }
+
+  // Admin mutation to create embeddings for existing movies
+  @Mutation(() => String, { name: 'createMovieEmbeddings' })
+  async createMovieEmbeddings(
+    @Args('batchSize', { type: () => Number, defaultValue: 10 }) batchSize: number,
+  ): Promise<string> {
+    this.logger.info('Processing createMovieEmbeddings request', { batchSize });
+    
+    try {
+      await this.recommendationService.createMovieEmbeddings(batchSize);
+      return 'Movie embeddings created successfully';
+    } catch (error) {
+      this.logger.error('Error creating movie embeddings:', error);
+      throw new Error(`Failed to create movie embeddings: ${error.message}`);
+    }
   }
 }
