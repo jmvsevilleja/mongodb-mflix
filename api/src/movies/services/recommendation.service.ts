@@ -20,23 +20,32 @@ export class RecommendationService {
     totalCount: number;
     hasMore: boolean;
   }> {
-    const { description, limit = 10, page = 1, genres, rated, yearFrom, yearTo } = input;
+    const {
+      description,
+      limit = 10,
+      page = 1,
+      genres,
+      rated,
+      yearFrom,
+      yearTo,
+    } = input;
 
     try {
       // Create embedding for the search description
       this.logger.log(`Creating embedding for description: "${description}"`);
-      const queryEmbedding = await this.embeddingService.createEmbedding(description);
+      const queryEmbedding =
+        await this.embeddingService.createEmbedding(description);
 
       // Build the vector search pipeline
       const pipeline: any[] = [
         {
           $vectorSearch: {
-            index: "vector_index",
+            index: 'vector_index',
             queryVector: queryEmbedding,
-            path: "embedding",
+            path: 'embedding',
             exact: true,
             limit: limit * 3, // Get more results to filter
-          }
+          },
         },
         {
           $project: {
@@ -59,10 +68,10 @@ export class RecommendationService {
             tomatoes: 1,
             type: 1,
             score: {
-              $meta: "vectorSearchScore"
-            }
-          }
-        }
+              $meta: 'vectorSearchScore',
+            },
+          },
+        },
       ];
 
       // Add additional filters if provided
@@ -91,49 +100,58 @@ export class RecommendationService {
       }
       pipeline.push({ $limit: limit });
 
-      this.logger.log(`Executing vector search pipeline with ${pipeline.length} stages`);
-      
+      this.logger.log(
+        `Executing vector search pipeline with ${pipeline.length} stages`,
+      );
+
       // Execute the aggregation pipeline
       const results = await this.movieModel.aggregate(pipeline);
 
       this.logger.log(`Vector search returned ${results.length} results`);
 
       // Transform results to recommendations
-      const recommendations: MovieRecommendation[] = results.map((result, index) => {
-        // Convert MongoDB document to JSON format
-        const movieData = {
-          id: result._id.toString(),
-          title: result.title,
-          plot: result.plot,
-          fullplot: result.fullplot,
-          poster: result.poster,
-          year: result.year,
-          genres: result.genres,
-          rated: result.rated,
-          runtime: result.runtime,
-          imdb: result.imdb,
-          directors: result.directors,
-          cast: result.cast,
-          languages: result.languages,
-          countries: result.countries,
-          released: result.released,
-          awards: result.awards,
-          tomatoes: result.tomatoes,
-          type: result.type,
-        };
+      const recommendations: MovieRecommendation[] = results.map(
+        (result, index) => {
+          // Convert MongoDB document to JSON format
+          const movieData = {
+            id: result._id.toString(),
+            title: result.title,
+            plot: result.plot,
+            fullplot: result.fullplot,
+            poster: result.poster,
+            year: result.year,
+            genres: result.genres,
+            rated: result.rated,
+            runtime: result.runtime,
+            imdb: result.imdb,
+            directors: result.directors,
+            cast: result.cast,
+            languages: result.languages,
+            countries: result.countries,
+            released: result.released,
+            awards: result.awards,
+            tomatoes: result.tomatoes,
+            type: result.type,
+          };
 
-        // Use the vector search score as similarity
-        const similarity = result.score || 0;
-        
-        // Generate reason for recommendation
-        const reason = this.generateRecommendationReason(movieData, description, similarity, index + 1);
+          // Use the vector search score as similarity
+          const similarity = result.score || 0;
 
-        return {
-          movie: movieData,
-          similarity,
-          reason,
-        };
-      });
+          // Generate reason for recommendation
+          const reason = this.generateRecommendationReason(
+            movieData,
+            description,
+            similarity,
+            index + 1,
+          );
+
+          return {
+            movie: movieData,
+            similarity,
+            reason,
+          };
+        },
+      );
 
       // For now, we'll assume we got all results (MongoDB vector search handles pagination)
       // In a production environment, you might want to do a separate count query
@@ -147,13 +165,18 @@ export class RecommendationService {
       };
     } catch (error) {
       this.logger.error('Error in recommendMovies:', error);
-      
+
       // Fallback to traditional search if vector search fails
-      if (error.message.includes('vector_index') || error.message.includes('$vectorSearch')) {
-        this.logger.warn('Vector search failed, falling back to traditional similarity search');
+      if (
+        error.message.includes('vector_index') ||
+        error.message.includes('$vectorSearch')
+      ) {
+        this.logger.warn(
+          'Vector search failed, falling back to traditional similarity search',
+        );
         return this.fallbackRecommendation(input);
       }
-      
+
       throw new Error(`Failed to generate recommendations: ${error.message}`);
     }
   }
@@ -163,11 +186,20 @@ export class RecommendationService {
     totalCount: number;
     hasMore: boolean;
   }> {
-    const { description, limit = 10, page = 1, genres, rated, yearFrom, yearTo } = input;
+    const {
+      description,
+      limit = 10,
+      page = 1,
+      genres,
+      rated,
+      yearFrom,
+      yearTo,
+    } = input;
 
     try {
       // Create embedding for the search description
-      const searchEmbedding = await this.embeddingService.createEmbedding(description);
+      const searchEmbedding =
+        await this.embeddingService.createEmbedding(description);
 
       // Build filter query
       const filter: any = {};
@@ -184,10 +216,7 @@ export class RecommendationService {
       }
 
       // Get movies from database (limited to prevent memory issues)
-      const movies = await this.movieModel
-        .find(filter)
-        .limit(500)
-        .exec();
+      const movies = await this.movieModel.find(filter).limit(500).exec();
 
       this.logger.log(`Fallback: Found ${movies.length} movies to analyze`);
 
@@ -198,14 +227,15 @@ export class RecommendationService {
         try {
           // Create a comprehensive text representation of the movie
           const movieText = this.createMovieText(movie);
-          
+
           // Create embedding for the movie
-          const movieEmbedding = await this.embeddingService.createEmbedding(movieText);
-          
+          const movieEmbedding =
+            await this.embeddingService.createEmbedding(movieText);
+
           // Calculate similarity
           const similarity = this.embeddingService.calculateCosineSimilarity(
             searchEmbedding,
-            movieEmbedding
+            movieEmbedding,
           );
 
           recommendations.push({
@@ -214,7 +244,10 @@ export class RecommendationService {
             reason: '',
           });
         } catch (error) {
-          this.logger.warn(`Error processing movie ${movie.title}:`, error.message);
+          this.logger.warn(
+            `Error processing movie ${movie.title}:`,
+            error.message,
+          );
           continue;
         }
       }
@@ -225,11 +258,19 @@ export class RecommendationService {
       // Apply pagination
       const startIndex = (page - 1) * limit;
       const endIndex = startIndex + limit;
-      const paginatedRecommendations = recommendations.slice(startIndex, endIndex);
+      const paginatedRecommendations = recommendations.slice(
+        startIndex,
+        endIndex,
+      );
 
       // Add reasons after sorting
       paginatedRecommendations.forEach((rec, index) => {
-        rec.reason = this.generateRecommendationReason(rec.movie, description, rec.similarity, startIndex + index + 1);
+        rec.reason = this.generateRecommendationReason(
+          rec.movie,
+          description,
+          rec.similarity,
+          startIndex + index + 1,
+        );
       });
 
       return {
@@ -239,13 +280,15 @@ export class RecommendationService {
       };
     } catch (error) {
       this.logger.error('Error in fallback recommendation:', error);
-      throw new Error(`Failed to generate fallback recommendations: ${error.message}`);
+      throw new Error(
+        `Failed to generate fallback recommendations: ${error.message}`,
+      );
     }
   }
 
   private createMovieText(movie: any): string {
-    const parts = [];
-    
+    const parts: string[] = [];
+
     if (movie.title) parts.push(`Title: ${movie.title}`);
     if (movie.plot) parts.push(`Plot: ${movie.plot}`);
     if (movie.fullplot) parts.push(`Full Plot: ${movie.fullplot}`);
@@ -264,9 +307,14 @@ export class RecommendationService {
     return parts.join('. ');
   }
 
-  private generateRecommendationReason(movie: any, description: string, similarity: number, rank: number): string {
-    const reasons = [];
-    
+  private generateRecommendationReason(
+    movie: any,
+    description: string,
+    similarity: number,
+    rank: number,
+  ): string {
+    const reasons: string[] = [];
+
     // Add ranking
     if (rank <= 3) {
       reasons.push(`Top ${rank} match`);
@@ -302,7 +350,7 @@ export class RecommendationService {
   // Method to create embeddings for existing movies (for initial setup)
   async createMovieEmbeddings(batchSize: number = 10): Promise<void> {
     this.logger.log('Starting to create embeddings for movies...');
-    
+
     const totalMovies = await this.movieModel.countDocuments();
     this.logger.log(`Total movies to process: ${totalMovies}`);
 
@@ -325,15 +373,16 @@ export class RecommendationService {
       for (const movie of movies) {
         try {
           const movieText = this.createMovieText(movie);
-          const embedding = await this.embeddingService.createEmbedding(movieText);
-          
+          const embedding =
+            await this.embeddingService.createEmbedding(movieText);
+
           await this.movieModel.updateOne(
             { _id: movie._id },
-            { $set: { embedding } }
+            { $set: { embedding } },
           );
 
           processed++;
-          
+
           if (processed % 50 === 0) {
             this.logger.log(`Processed ${processed}/${totalMovies} movies`);
           }
@@ -343,7 +392,7 @@ export class RecommendationService {
       }
 
       // Add a small delay to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     this.logger.log(`Completed processing ${processed} movies`);

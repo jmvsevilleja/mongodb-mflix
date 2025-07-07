@@ -21,8 +21,10 @@ export class EmbeddingService {
 
   async createEmbedding(text: string): Promise<number[]> {
     try {
-      this.logger.debug(`Creating embedding for text: ${text.substring(0, 100)}...`);
-      
+      this.logger.debug(
+        `Creating embedding for text: ${text.substring(0, 100)}...`,
+      );
+
       const response = await this.mistralClient.embeddings.create({
         model: 'mistral-embed',
         inputs: [text],
@@ -33,8 +35,14 @@ export class EmbeddingService {
       }
 
       const embedding = response.data[0].embedding;
-      this.logger.debug(`Created embedding with ${embedding.length} dimensions`);
-      
+      if (!embedding) {
+        throw new Error('Embedding data is undefined');
+      }
+
+      this.logger.debug(
+        `Created embedding with ${embedding.length} dimensions`,
+      );
+
       return embedding;
     } catch (error) {
       this.logger.error('Error creating embedding:', error);
@@ -70,7 +78,7 @@ export class EmbeddingService {
   async createBatchEmbeddings(texts: string[]): Promise<number[][]> {
     try {
       this.logger.debug(`Creating batch embeddings for ${texts.length} texts`);
-      
+
       const response = await this.mistralClient.embeddings.create({
         model: 'mistral-embed',
         inputs: texts,
@@ -80,7 +88,12 @@ export class EmbeddingService {
         throw new Error('No embedding data received from Mistral API');
       }
 
-      return response.data.map(item => item.embedding);
+      const embeddings = response.data.map((item) => item.embedding);
+      if (embeddings.some((embedding) => !embedding)) {
+        throw new Error('Some embedding data is undefined');
+      }
+
+      return embeddings as number[][];
     } catch (error) {
       this.logger.error('Error creating batch embeddings:', error);
       throw new Error(`Failed to create batch embeddings: ${error.message}`);

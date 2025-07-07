@@ -76,6 +76,12 @@ type MovieFilters {
   ratings: [String!]!
 }
 
+type MovieRecommendation {
+  movie: Movie!
+  reason: String!
+  similarity: Float!
+}
+
 type MoviesResponse {
   filters: MovieFilters!
   hasMore: Boolean!
@@ -83,10 +89,32 @@ type MoviesResponse {
   totalCount: Int!
 }
 
+type Mutation {
+  createMovieEmbeddings(batchSize: Float! = 10): String!
+}
+
 type Query {
   movie(id: ID!): Movie
   movieFilters: MovieFilters!
   movies(input: AllMoviesInput!): MoviesResponse!
+  recommendMovies(input: RecommendMoviesInput!): RecommendationsResponse!
+}
+
+input RecommendMoviesInput {
+  description: String!
+  genres: [String!]
+  limit: Int! = 10
+  page: Int! = 1
+  rated: String
+  yearFrom: Int
+  yearTo: Int
+}
+
+type RecommendationsResponse {
+  hasMore: Boolean!
+  recommendations: [MovieRecommendation!]!
+  searchDescription: String!
+  totalCount: Float!
 }
 
 type Tomatoes {
