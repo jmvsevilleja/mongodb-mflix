@@ -52,10 +52,12 @@ interface MovieRecommendationProps {
   onMovieClick: (movie: Movie) => void;
 }
 
-export function MovieRecommendation({ onMovieClick }: MovieRecommendationProps) {
+export function MovieRecommendation({
+  onMovieClick,
+}: MovieRecommendationProps) {
   const [description, setDescription] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  
+
   const debouncedDescription = useDebounce(description, 1000);
 
   const { data, loading, error } = useQuery(RECOMMEND_MOVIES, {
@@ -77,7 +79,8 @@ export function MovieRecommendation({ onMovieClick }: MovieRecommendationProps) 
     }
   };
 
-  const recommendations: MovieRecommendation[] = data?.recommendMovies?.recommendations || [];
+  const recommendations: MovieRecommendation[] =
+    data?.recommendMovies?.recommendations || [];
 
   const getRelevanceColor = (similarity: number) => {
     if (similarity >= 0.9) return "bg-green-500";
@@ -88,7 +91,8 @@ export function MovieRecommendation({ onMovieClick }: MovieRecommendationProps) 
 
   const getRelevanceIcon = (reason: string) => {
     if (reason.includes("Perfect Match") || reason.includes("🎯")) return "🎯";
-    if (reason.includes("Excellent Match") || reason.includes("⭐")) return "⭐";
+    if (reason.includes("Excellent Match") || reason.includes("⭐"))
+      return "⭐";
     if (reason.includes("Great Match") || reason.includes("✨")) return "✨";
     if (reason.includes("Top") || reason.includes("🏆")) return "🏆";
     return "👍";
@@ -108,7 +112,9 @@ export function MovieRecommendation({ onMovieClick }: MovieRecommendationProps) 
           </CardTitle>
           <div className="flex items-center gap-2 text-sm text-purple-600 dark:text-purple-400">
             <Zap className="h-4 w-4" />
-            <span>Enhanced with LangChain + Mistral AI for intelligent filtering</span>
+            <span>
+              Enhanced with LangChain + Mistral AI for intelligent filtering
+            </span>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -119,7 +125,7 @@ export function MovieRecommendation({ onMovieClick }: MovieRecommendationProps) 
               className="pl-4 pr-12 py-3 text-base border-purple-200 dark:border-purple-700 focus:border-purple-400 dark:focus:border-purple-500"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              onKeyPress={(e) => e.key === "Enter" && handleSearch()}
             />
             <Button
               onClick={handleSearch}
@@ -134,7 +140,7 @@ export function MovieRecommendation({ onMovieClick }: MovieRecommendationProps) 
               )}
             </Button>
           </div>
-          
+
           {description.length > 0 && description.length < 10 && (
             <p className="text-sm text-muted-foreground">
               Please enter at least 10 characters for better AI analysis
@@ -152,13 +158,17 @@ export function MovieRecommendation({ onMovieClick }: MovieRecommendationProps) 
             <div className="bg-purple-50 dark:bg-purple-950/20 p-3 rounded-md">
               <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300">
                 <Brain className="h-4 w-4 animate-pulse" />
-                <span className="text-sm font-medium">AI Analysis in Progress...</span>
+                <span className="text-sm font-medium">
+                  AI Analysis in Progress...
+                </span>
               </div>
               <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">
-                • Creating semantic embeddings with Mistral AI<br/>
-                • Searching vector database for similar movies<br/>
-                • Applying LangChain intelligent filtering<br/>
-                • Generating personalized explanations
+                • Creating semantic embeddings with Mistral AI
+                <br />
+                • Searching vector database for similar movies
+                <br />
+                • Applying LangChain intelligent filtering
+                <br />• Generating personalized explanations
               </div>
             </div>
           )}
@@ -171,10 +181,14 @@ export function MovieRecommendation({ onMovieClick }: MovieRecommendationProps) 
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <Brain className="h-5 w-5 text-purple-600" />
-              AI Recommendations for: "{data.recommendMovies.searchDescription}"
+              AI Recommendations for: &ldquo;
+              {data.recommendMovies.searchDescription}&rdquo;
             </h3>
             <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
+              <Badge
+                variant="secondary"
+                className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
+              >
                 <Sparkles className="h-3 w-3 mr-1" />
                 {data.recommendMovies.totalCount} intelligent matches
               </Badge>
@@ -190,8 +204,10 @@ export function MovieRecommendation({ onMovieClick }: MovieRecommendationProps) 
               >
                 {/* Enhanced Similarity Badge */}
                 <div className="absolute top-2 right-2 z-10 flex flex-col gap-1">
-                  <Badge 
-                    className={`${getRelevanceColor(recommendation.similarity)} text-white text-xs px-2 py-1`}
+                  <Badge
+                    className={`${getRelevanceColor(
+                      recommendation.similarity
+                    )} text-white text-xs px-2 py-1`}
                   >
                     {Math.round(recommendation.similarity * 100)}% match
                   </Badge>
@@ -201,9 +217,7 @@ export function MovieRecommendation({ onMovieClick }: MovieRecommendationProps) 
                 </div>
 
                 {/* Ranking Badge */}
-                <Badge 
-                  className="absolute top-2 left-2 z-10 bg-gradient-to-r from-purple-600 to-blue-600 text-white"
-                >
+                <Badge className="absolute top-2 left-2 z-10 bg-gradient-to-r from-purple-600 to-blue-600 text-white">
                   #{index + 1}
                 </Badge>
 
@@ -221,7 +235,9 @@ export function MovieRecommendation({ onMovieClick }: MovieRecommendationProps) 
                       <div className="w-full h-full bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900 dark:to-blue-900 flex items-center justify-center">
                         <div className="text-center">
                           <Brain className="h-8 w-8 mx-auto text-purple-500 mb-2" />
-                          <span className="text-purple-600 dark:text-purple-400 text-sm">AI Recommended</span>
+                          <span className="text-purple-600 dark:text-purple-400 text-sm">
+                            AI Recommended
+                          </span>
                         </div>
                       </div>
                     )}
@@ -254,20 +270,30 @@ export function MovieRecommendation({ onMovieClick }: MovieRecommendationProps) 
                       </p>
                     )}
 
-                    {recommendation.movie.genres && recommendation.movie.genres.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {recommendation.movie.genres.slice(0, 2).map((genre) => (
-                          <Badge key={genre} variant="outline" className="text-xs border-purple-200 text-purple-700 dark:border-purple-700 dark:text-purple-300">
-                            {genre}
-                          </Badge>
-                        ))}
-                        {recommendation.movie.genres.length > 2 && (
-                          <Badge variant="outline" className="text-xs border-purple-200 text-purple-700 dark:border-purple-700 dark:text-purple-300">
-                            +{recommendation.movie.genres.length - 2}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
+                    {recommendation.movie.genres &&
+                      recommendation.movie.genres.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {recommendation.movie.genres
+                            .slice(0, 2)
+                            .map((genre) => (
+                              <Badge
+                                key={genre}
+                                variant="outline"
+                                className="text-xs border-purple-200 text-purple-700 dark:border-purple-700 dark:text-purple-300"
+                              >
+                                {genre}
+                              </Badge>
+                            ))}
+                          {recommendation.movie.genres.length > 2 && (
+                            <Badge
+                              variant="outline"
+                              className="text-xs border-purple-200 text-purple-700 dark:border-purple-700 dark:text-purple-300"
+                            >
+                              +{recommendation.movie.genres.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
 
                     {recommendation.movie.imdb?.rating && (
                       <div className="flex items-center gap-1 text-xs">
@@ -286,7 +312,10 @@ export function MovieRecommendation({ onMovieClick }: MovieRecommendationProps) 
           <div className="text-center py-4">
             <div className="inline-flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-4 py-2 rounded-full">
               <Brain className="h-4 w-4" />
-              <span>Powered by Mistral AI embeddings + LangChain intelligent filtering</span>
+              <span>
+                Powered by Mistral AI embeddings + LangChain intelligent
+                filtering
+              </span>
             </div>
           </div>
         </div>
@@ -303,7 +332,8 @@ export function MovieRecommendation({ onMovieClick }: MovieRecommendationProps) 
               AI is analyzing your request and finding perfect matches...
             </p>
             <div className="text-xs text-muted-foreground max-w-md">
-              Using advanced semantic understanding to go beyond simple keyword matching
+              Using advanced semantic understanding to go beyond simple keyword
+              matching
             </div>
           </div>
         </div>

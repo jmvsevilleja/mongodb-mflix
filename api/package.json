@@ -22,9 +22,10 @@
   },
   "dependencies": {
     "@apollo/server": "^4.12.1",
-    "@langchain/core": "^0.3.29",
-    "@langchain/mistralai": "^0.1.1",
-    "@mistralai/mistralai": "^1.2.0",
+    "@langchain/community": "^0.3.48",
+    "@langchain/core": "^0.3.62",
+    "@langchain/mistralai": "^0.2.1",
+    "@mistralai/mistralai": "^1.7.3",
     "@nestjs/apollo": "^13.1.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
