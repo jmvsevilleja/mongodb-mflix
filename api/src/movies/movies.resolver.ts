@@ -1,7 +1,10 @@
 import { Resolver, Query, Args, ID } from '@nestjs/graphql';
 import { MoviesService } from './movies.service';
+import { RecommendationService } from './services/recommendation.service';
 import { Movie, MoviesResponse, MovieFilters } from './models/movie.model';
+import { RecommendationsResponse } from './models/recommendation.model';
 import { AllMoviesInput } from './dto/all-movies.input';
+import { RecommendMoviesInput } from './dto/recommend-movies.input';
 import { Logger } from 'winston';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Inject } from '@nestjs/common';
@@ -10,6 +13,7 @@ import { Inject } from '@nestjs/common';
 export class MoviesResolver {
   constructor(
     private readonly moviesService: MoviesService,
+    private readonly recommendationService: RecommendationService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
@@ -42,5 +46,21 @@ export class MoviesResolver {
   async getMovieFilters(): Promise<MovieFilters> {
     this.logger.info('Processing getMovieFilters request', MovieFilters);
     return this.moviesService.getFilters();
+  }
+
+  @Query(() => RecommendationsResponse, { name: 'recommendMovies' })
+  async recommendMovies(
+    @Args('input') input: RecommendMoviesInput,
+  ): Promise<RecommendationsResponse> {
+    this.logger.info('Processing recommendMovies request', input);
+    
+    const result = await this.recommendationService.recommendMovies(input);
+    
+    return {
+      recommendations: result.recommendations,
+      totalCount: result.totalCount,
+      hasMore: result.hasMore,
+      searchDescription: input.description,
+    };
   }
 }

@@ -13,11 +13,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MainHeader } from "@/components/layout/main-header";
 import { MoviesList } from "../../components/movies/movies-list";
 import { MovieFilters } from "../../components/movies/movie-filters";
 import { MovieDetailModal } from "../../components/movies/movie-detail-modal";
-import { Search, Filter, X } from "lucide-react";
+import { MovieRecommendation } from "../../components/movies/movie-recommendation";
+import { Search, Filter, X, Sparkles } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 
 const GET_MOVIES = gql`
@@ -155,6 +157,7 @@ export default function MoviesPage() {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [allMovies, setAllMovies] = useState<Movie[]>([]);
+  const [activeTab, setActiveTab] = useState("search");
 
   // Debounce search term
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -188,6 +191,7 @@ export default function MoviesPage() {
         sortOrder,
       },
     },
+    skip: activeTab !== "search",
     onCompleted: (data) => {
       if (page === 1) {
         setAllMovies(data.movies.movies);
@@ -242,159 +246,179 @@ export default function MoviesPage() {
       <main className="container flex-1 py-8 space-y-6">
         {/* Header */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold">Movie Search</h1>
+          <h1 className="text-3xl font-bold">Movie Discovery</h1>
           <p className="text-muted-foreground">
-            Discover movies with advanced search and filtering
+            Search movies or get AI-powered recommendations based on your description
           </p>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search movies by title or plot..."
-            className="pl-9 pr-4"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+        {/* Tabs for Search vs Recommendations */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="search" className="flex items-center gap-2">
+              <Search className="h-4 w-4" />
+              Search Movies
+            </TabsTrigger>
+            <TabsTrigger value="recommend" className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              AI Recommendations
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Filter Controls */}
-        <div className="flex flex-wrap items-center gap-4">
-          <Button
-            variant="outline"
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2"
-          >
-            <Filter className="h-4 w-4" />
-            Filters
+          <TabsContent value="search" className="space-y-6">
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search movies by title or plot..."
+                className="pl-9 pr-4"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            {/* Filter Controls */}
+            <div className="flex flex-wrap items-center gap-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center gap-2"
+              >
+                <Filter className="h-4 w-4" />
+                Filters
+                {hasActiveFilters && (
+                  <Badge variant="secondary" className="ml-1">
+                    Active
+                  </Badge>
+                )}
+              </Button>
+
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="year">Year</SelectItem>
+                  <SelectItem value="title">Title</SelectItem>
+                  <SelectItem value="imdb.rating">IMDB Rating</SelectItem>
+                  <SelectItem value="runtime">Runtime</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={sortOrder}
+                onValueChange={(value: "asc" | "desc") => setSortOrder(value)}
+              >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="desc">Descending</SelectItem>
+                  <SelectItem value="asc">Ascending</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  onClick={clearFilters}
+                  className="flex items-center gap-2"
+                >
+                  <X className="h-4 w-4" />
+                  Clear Filters
+                </Button>
+              )}
+            </div>
+
+            {/* Active Filters Display */}
             {hasActiveFilters && (
-              <Badge variant="secondary" className="ml-1">
-                Active
-              </Badge>
+              <div className="flex flex-wrap gap-2">
+                {debouncedSearchTerm && (
+                  <Badge variant="secondary">Search: {debouncedSearchTerm}</Badge>
+                )}
+                {selectedGenres.map((genre) => (
+                  <Badge key={genre} variant="secondary">
+                    Genre: {genre}
+                    <X
+                      className="h-3 w-3 ml-1 cursor-pointer"
+                      onClick={() =>
+                        setSelectedGenres((prev) => prev.filter((g) => g !== genre))
+                      }
+                    />
+                  </Badge>
+                ))}
+                {selectedRating && (
+                  <Badge variant="secondary">
+                    Rating: {selectedRating}
+                    <X
+                      className="h-3 w-3 ml-1 cursor-pointer"
+                      onClick={() => setSelectedRating("")}
+                    />
+                  </Badge>
+                )}
+                {selectedLanguages.map((lang) => (
+                  <Badge key={lang} variant="secondary">
+                    Language: {lang}
+                    <X
+                      className="h-3 w-3 ml-1 cursor-pointer"
+                      onClick={() =>
+                        setSelectedLanguages((prev) =>
+                          prev.filter((l) => l !== lang)
+                        )
+                      }
+                    />
+                  </Badge>
+                ))}
+                {selectedCountry && (
+                  <Badge variant="secondary">
+                    Country: {selectedCountry}
+                    <X
+                      className="h-3 w-3 ml-1 cursor-pointer"
+                      onClick={() => setSelectedCountry("")}
+                    />
+                  </Badge>
+                )}
+              </div>
             )}
-          </Button>
 
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="year">Year</SelectItem>
-              <SelectItem value="title">Title</SelectItem>
-              <SelectItem value="imdb.rating">IMDB Rating</SelectItem>
-              <SelectItem value="runtime">Runtime</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={sortOrder}
-            onValueChange={(value: "asc" | "desc") => setSortOrder(value)}
-          >
-            <SelectTrigger className="w-[120px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="desc">Descending</SelectItem>
-              <SelectItem value="asc">Ascending</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              onClick={clearFilters}
-              className="flex items-center gap-2"
-            >
-              <X className="h-4 w-4" />
-              Clear Filters
-            </Button>
-          )}
-        </div>
-
-        {/* Active Filters Display */}
-        {hasActiveFilters && (
-          <div className="flex flex-wrap gap-2">
-            {debouncedSearchTerm && (
-              <Badge variant="secondary">Search: {debouncedSearchTerm}</Badge>
+            {/* Filters Panel */}
+            {showFilters && movieFilters && (
+              <MovieFilters
+                filters={movieFilters}
+                selectedGenres={selectedGenres}
+                selectedRating={selectedRating}
+                selectedLanguages={selectedLanguages}
+                selectedCountry={selectedCountry}
+                onGenresChange={setSelectedGenres}
+                onRatingChange={setSelectedRating}
+                onLanguagesChange={setSelectedLanguages}
+                onCountryChange={setSelectedCountry}
+              />
             )}
-            {selectedGenres.map((genre) => (
-              <Badge key={genre} variant="secondary">
-                Genre: {genre}
-                <X
-                  className="h-3 w-3 ml-1 cursor-pointer"
-                  onClick={() =>
-                    setSelectedGenres((prev) => prev.filter((g) => g !== genre))
-                  }
-                />
-              </Badge>
-            ))}
-            {selectedRating && (
-              <Badge variant="secondary">
-                Rating: {selectedRating}
-                <X
-                  className="h-3 w-3 ml-1 cursor-pointer"
-                  onClick={() => setSelectedRating("")}
-                />
-              </Badge>
-            )}
-            {selectedLanguages.map((lang) => (
-              <Badge key={lang} variant="secondary">
-                Language: {lang}
-                <X
-                  className="h-3 w-3 ml-1 cursor-pointer"
-                  onClick={() =>
-                    setSelectedLanguages((prev) =>
-                      prev.filter((l) => l !== lang)
-                    )
-                  }
-                />
-              </Badge>
-            ))}
-            {selectedCountry && (
-              <Badge variant="secondary">
-                Country: {selectedCountry}
-                <X
-                  className="h-3 w-3 ml-1 cursor-pointer"
-                  onClick={() => setSelectedCountry("")}
-                />
-              </Badge>
-            )}
-          </div>
-        )}
 
-        {/* Filters Panel */}
-        {showFilters && movieFilters && (
-          <MovieFilters
-            filters={movieFilters}
-            selectedGenres={selectedGenres}
-            selectedRating={selectedRating}
-            selectedLanguages={selectedLanguages}
-            selectedCountry={selectedCountry}
-            onGenresChange={setSelectedGenres}
-            onRatingChange={setSelectedRating}
-            onLanguagesChange={setSelectedLanguages}
-            onCountryChange={setSelectedCountry}
-          />
-        )}
+            {/* Results */}
+            <div className="space-y-4">
+              {data?.movies.totalCount > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Found {data.movies.totalCount.toLocaleString()} movies
+                </p>
+              )}
 
-        {/* Results */}
-        <div className="space-y-4">
-          {data?.movies.totalCount > 0 && (
-            <p className="text-sm text-muted-foreground">
-              Found {data.movies.totalCount.toLocaleString()} movies
-            </p>
-          )}
+              <MoviesList
+                movies={allMovies}
+                loading={loading}
+                hasMore={data?.movies.hasMore || false}
+                onMovieClick={handleMovieClick}
+                onLoadMore={loadMoreMovies}
+              />
+            </div>
+          </TabsContent>
 
-          <MoviesList
-            movies={allMovies}
-            loading={loading}
-            hasMore={data?.movies.hasMore || false}
-            onMovieClick={handleMovieClick}
-            onLoadMore={loadMoreMovies}
-          />
-        </div>
+          <TabsContent value="recommend" className="space-y-6">
+            <MovieRecommendation onMovieClick={handleMovieClick} />
+          </TabsContent>
+        </Tabs>
       </main>
 
       {/* Movie Detail Modal */}
