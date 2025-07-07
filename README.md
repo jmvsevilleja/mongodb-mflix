@@ -1,6 +1,6 @@
 # Full-Stack Movie Search Application
 
-This project is a full-stack application featuring a NestJS backend API and a Next.js frontend. It allows users to search for movies using traditional search or AI-powered semantic recommendations using Mistral AI embeddings and MongoDB vector search.
+This project is a full-stack application featuring a NestJS backend API and a Next.js frontend. It allows users to search for movies using traditional search or AI-powered semantic recommendations using Mistral AI embeddings, MongoDB vector search, and LangChain intelligent filtering.
 
 ## Features
 
@@ -8,6 +8,23 @@ This project is a full-stack application featuring a NestJS backend API and a Ne
 - **AI-Powered Recommendations**: Describe what you're looking for and get semantically similar movies
 - **Vector Search**: Uses MongoDB Atlas Vector Search for efficient similarity matching
 - **Mistral AI Integration**: Leverages Mistral's embedding model for semantic understanding
+- **LangChain Intelligent Filtering**: Advanced AI filtering and ranking using LangChain + Mistral AI
+- **Smart Explanations**: AI-generated explanations for why each movie matches your query
+
+## AI Technology Stack
+
+### Backend AI Components:
+- **Mistral AI Embeddings**: Convert movie descriptions and user queries into high-dimensional vectors
+- **MongoDB Vector Search**: Efficient similarity search using cosine similarity
+- **LangChain Framework**: Orchestrates AI workflows for intelligent filtering
+- **Mistral Large Model**: Provides detailed analysis and explanations for recommendations
+
+### AI Workflow:
+1. **Embedding Creation**: User query → Mistral AI → 1024-dimensional vector
+2. **Vector Search**: MongoDB finds movies with similar embeddings
+3. **LangChain Filtering**: AI analyzes candidates and provides relevance scores
+4. **Smart Ranking**: Results ranked by AI-determined relevance (0-100 scale)
+5. **Explanation Generation**: AI creates personalized explanations for each recommendation
 
 ## API
 
@@ -17,12 +34,14 @@ The backend API is built with NestJS and includes:
 - Movie search and filtering
 - AI-powered movie recommendations using Mistral AI embeddings
 - MongoDB vector search integration
+- LangChain intelligent filtering and ranking
 - GraphQL API
 
 ### Key Technologies:
 - NestJS with GraphQL
 - MongoDB with Vector Search
-- Mistral AI for embeddings
+- Mistral AI for embeddings and LLM analysis
+- LangChain for AI workflow orchestration
 - JWT authentication
 
 ## Web
@@ -31,6 +50,7 @@ The frontend is a Next.js application featuring:
 
 - Responsive movie search interface
 - AI recommendation system with natural language queries
+- Enhanced UI showing AI confidence scores and explanations
 - Movie detail modals
 - Authentication and user management
 
@@ -111,36 +131,56 @@ The frontend is a Next.js application featuring:
 ### AI Recommendations
 - Use the "AI Recommendations" tab
 - Enter descriptive text like "a story where a cowboy and astronaut become friends"
-- Get semantically similar movies ranked by relevance
+- Get semantically similar movies ranked by AI relevance
+- See detailed AI explanations for each recommendation
 
 ## Example Queries
 
-- "a story where a cowboy and astronaut become friends" → Toy Story
-- "space battles with lightsabers" → Star Wars movies
-- "talking animals in a jungle" → The Lion King, Madagascar
-- "time travel adventure with a scientist" → Back to the Future
+- "a story where a cowboy and astronaut become friends" → Toy Story (95% match)
+- "space battles with lightsabers and the force" → Star Wars movies
+- "talking animals in a jungle with life lessons" → The Lion King, Madagascar
+- "time travel adventure with a scientist and teenager" → Back to the Future
+- "superhero team fighting alien invasion in New York" → The Avengers
 
-## Architecture
+## AI Architecture
 
 ### Vector Search Flow
 1. User enters descriptive text
 2. Text is converted to embeddings using Mistral AI
 3. MongoDB vector search finds similar movie embeddings
-4. Results are ranked by cosine similarity
-5. Movies are returned with similarity scores and reasons
+4. LangChain analyzes candidates for relevance
+5. AI provides relevance scores (0-100) and explanations
+6. Results ranked by AI-determined relevance
+
+### LangChain Filtering Process
+1. **Candidate Retrieval**: Vector search gets 3x more results than needed
+2. **AI Analysis**: LangChain + Mistral Large analyzes each candidate
+3. **Relevance Scoring**: AI assigns 0-100 relevance scores
+4. **Intelligent Filtering**: Only movies with >30% relevance are included
+5. **Explanation Generation**: AI creates detailed explanations for top matches
+6. **Smart Ranking**: Final results sorted by AI relevance, not just vector similarity
 
 ### Fallback System
-If vector search fails, the system falls back to:
-1. In-memory similarity calculation
-2. Traditional text-based search
-3. Ensures the system remains functional
+If AI filtering fails, the system falls back to:
+1. Basic vector search results
+2. Simple similarity-based ranking
+3. Generic explanations
+4. Ensures the system remains functional
+
+## Performance Optimizations
+
+- **Batch Processing**: Embeddings created in batches to avoid rate limits
+- **Caching**: Vector embeddings stored in MongoDB for reuse
+- **Pagination**: AI filtering applied to paginated results
+- **Fallback Logic**: Multiple fallback layers ensure reliability
+- **Efficient Queries**: MongoDB aggregation pipelines for optimal performance
 
 ## Deployment
 
 ### API
 - Deploy to platforms supporting Node.js (Vercel, Railway, etc.)
 - Ensure MongoDB Atlas is accessible
-- Set production environment variables
+- Set production environment variables including `MISTRAL_API_KEY`
 
 ### Web
 - Deploy to Vercel (recommended) or similar platforms
@@ -158,3 +198,11 @@ If vector search fails, the system falls back to:
 ## License
 
 This project is currently unlicensed. Please refer to the project owner for license information.
+
+## AI Model Information
+
+- **Embedding Model**: `mistral-embed` (1024 dimensions)
+- **LLM Model**: `mistral-large-latest` for analysis and explanations
+- **Vector Database**: MongoDB Atlas Vector Search
+- **AI Framework**: LangChain for workflow orchestration
+- **Similarity Metric**: Cosine similarity for vector comparisons

@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Movie, MovieDocument } from '../schemas/movie.schema';
 import { EmbeddingService } from './embedding.service';
+import { LangChainFilterService, MovieCandidate } from './langchain-filter.service';
 import { RecommendMoviesInput } from '../dto/recommend-movies.input';
 import { MovieRecommendation } from '../models/recommendation.model';
 
@@ -13,6 +14,7 @@ export class RecommendationService {
   constructor(
     @InjectModel(Movie.name) private movieModel: Model<MovieDocument>,
     private embeddingService: EmbeddingService,
+    private langChainFilterService: LangChainFilterService,
   ) {}
 
   async recommendMovies(input: RecommendMoviesInput): Promise<{
@@ -31,12 +33,14 @@ export class RecommendationService {
     } = input;
 
     try {
-      // Create embedding for the search description
+      // Step 1: Create embedding for the search description
       this.logger.log(`Creating embedding for description: "${description}"`);
       const queryEmbedding =
         await this.embeddingService.createEmbedding(description);
 
-      // Build the vector search pipeline
+      // Step 2: Get initial candidates using vector search (get more than needed for filtering)
+      const vectorSearchLimit = Math.max(limit * 3, 20); // Get 3x more candidates for filtering
+      
       const pipeline: any[] = [
         {
           $vectorSearch: {
@@ -44,7 +48,7 @@ export class RecommendationService {
             queryVector: queryEmbedding,
             path: 'embedding',
             exact: true,
-            limit: limit * 3, // Get more results to filter
+            limit: vectorSearchLimit,
           },
         },
         {
@@ -93,70 +97,105 @@ export class RecommendationService {
         pipeline.push({ $match: matchFilters });
       }
 
-      // Add pagination
-      const skip = (page - 1) * limit;
-      if (skip > 0) {
-        pipeline.push({ $skip: skip });
-      }
-      pipeline.push({ $limit: limit });
-
       this.logger.log(
-        `Executing vector search pipeline with ${pipeline.length} stages`,
+        `Executing vector search pipeline to get ${vectorSearchLimit} candidates`,
       );
 
-      // Execute the aggregation pipeline
-      const results = await this.movieModel.aggregate(pipeline);
+      // Execute the aggregation pipeline to get candidates
+      const vectorResults = await this.movieModel.aggregate(pipeline);
 
-      this.logger.log(`Vector search returned ${results.length} results`);
+      this.logger.log(`Vector search returned ${vectorResults.length} candidates`);
 
-      // Transform results to recommendations
-      const recommendations: MovieRecommendation[] = results.map(
-        (result, index) => {
-          // Convert MongoDB document to JSON format
+      if (vectorResults.length === 0) {
+        return {
+          recommendations: [],
+          totalCount: 0,
+          hasMore: false,
+        };
+      }
+
+      // Step 3: Convert to MovieCandidate format for LangChain filtering
+      const movieCandidates: MovieCandidate[] = vectorResults.map((result) => ({
+        id: result._id.toString(),
+        title: result.title,
+        plot: result.plot,
+        fullplot: result.fullplot,
+        genres: result.genres,
+        year: result.year,
+        directors: result.directors,
+        cast: result.cast,
+        rated: result.rated,
+        similarity: result.score || 0,
+      }));
+
+      // Step 4: Use LangChain to intelligently filter and rank the candidates
+      this.logger.log('Applying LangChain intelligent filtering...');
+      const filteredRecommendations = await this.langChainFilterService.filterAndRankMovies(
+        description,
+        movieCandidates,
+      );
+
+      // Step 5: Apply pagination to the filtered results
+      const skip = (page - 1) * limit;
+      const paginatedRecommendations = filteredRecommendations.slice(skip, skip + limit);
+
+      // Step 6: Transform to final recommendation format
+      const recommendations: MovieRecommendation[] = await Promise.all(
+        paginatedRecommendations.map(async (filtered, index) => {
           const movieData = {
-            id: result._id.toString(),
-            title: result.title,
-            plot: result.plot,
-            fullplot: result.fullplot,
-            poster: result.poster,
-            year: result.year,
-            genres: result.genres,
-            rated: result.rated,
-            runtime: result.runtime,
-            imdb: result.imdb,
-            directors: result.directors,
-            cast: result.cast,
-            languages: result.languages,
-            countries: result.countries,
-            released: result.released,
-            awards: result.awards,
-            tomatoes: result.tomatoes,
-            type: result.type,
+            id: filtered.movie.id,
+            title: filtered.movie.title,
+            plot: filtered.movie.plot,
+            fullplot: filtered.movie.fullplot,
+            poster: vectorResults.find(r => r._id.toString() === filtered.movie.id)?.poster,
+            year: filtered.movie.year,
+            genres: filtered.movie.genres,
+            rated: filtered.movie.rated,
+            runtime: vectorResults.find(r => r._id.toString() === filtered.movie.id)?.runtime,
+            imdb: vectorResults.find(r => r._id.toString() === filtered.movie.id)?.imdb,
+            directors: filtered.movie.directors,
+            cast: filtered.movie.cast,
+            languages: vectorResults.find(r => r._id.toString() === filtered.movie.id)?.languages,
+            countries: vectorResults.find(r => r._id.toString() === filtered.movie.id)?.countries,
+            released: vectorResults.find(r => r._id.toString() === filtered.movie.id)?.released,
+            awards: vectorResults.find(r => r._id.toString() === filtered.movie.id)?.awards,
+            tomatoes: vectorResults.find(r => r._id.toString() === filtered.movie.id)?.tomatoes,
+            type: vectorResults.find(r => r._id.toString() === filtered.movie.id)?.type,
           };
 
-          // Use the vector search score as similarity
-          const similarity = result.score || 0;
-
-          // Generate reason for recommendation
-          const reason = this.generateRecommendationReason(
-            movieData,
-            description,
-            similarity,
-            index + 1,
-          );
+          // Use LangChain explanation or generate a detailed one
+          let explanation = filtered.explanation;
+          if (filtered.relevanceScore > 70) {
+            try {
+              explanation = await this.langChainFilterService.generateDetailedExplanation(
+                description,
+                filtered.movie,
+                filtered.relevanceScore,
+              );
+            } catch (error) {
+              this.logger.warn('Failed to generate detailed explanation, using default');
+            }
+          }
 
           return {
             movie: movieData,
-            similarity,
-            reason,
+            similarity: filtered.relevanceScore / 100, // Convert back to 0-1 scale
+            reason: this.enhanceReasonWithElements(
+              explanation,
+              filtered.matchingElements,
+              index + skip + 1,
+              filtered.relevanceScore,
+            ),
           };
-        },
+        }),
       );
 
-      // For now, we'll assume we got all results (MongoDB vector search handles pagination)
-      // In a production environment, you might want to do a separate count query
-      const totalCount = recommendations.length;
-      const hasMore = recommendations.length === limit;
+      const totalCount = filteredRecommendations.length;
+      const hasMore = skip + paginatedRecommendations.length < totalCount;
+
+      this.logger.log(
+        `Returning ${recommendations.length} recommendations (page ${page}, total: ${totalCount})`,
+      );
 
       return {
         recommendations,
@@ -165,8 +204,103 @@ export class RecommendationService {
       };
     } catch (error) {
       this.logger.error('Error in recommendMovies:', error);
-      throw new Error(`Failed to generate recommendations: ${error.message}`);
+      
+      // Fallback to basic vector search if LangChain fails
+      return this.fallbackRecommendation(input, queryEmbedding);
     }
+  }
+
+  private enhanceReasonWithElements(
+    explanation: string,
+    matchingElements: string[],
+    rank: number,
+    relevanceScore: number,
+  ): string {
+    const rankText = rank <= 3 ? `🏆 Top ${rank}` : `#${rank}`;
+    const scoreText = relevanceScore >= 90 ? '🎯 Perfect Match' : 
+                     relevanceScore >= 75 ? '⭐ Excellent Match' :
+                     relevanceScore >= 60 ? '✨ Great Match' : '👍 Good Match';
+    
+    let enhancedReason = `${rankText} • ${scoreText}`;
+    
+    if (matchingElements.length > 0) {
+      const elementsText = matchingElements.slice(0, 3).join(', ');
+      enhancedReason += ` • Key elements: ${elementsText}`;
+    }
+    
+    if (explanation && explanation.length > 20) {
+      enhancedReason += ` • ${explanation}`;
+    }
+
+    return enhancedReason;
+  }
+
+  private async fallbackRecommendation(
+    input: RecommendMoviesInput,
+    queryEmbedding: number[],
+  ): Promise<{
+    recommendations: MovieRecommendation[];
+    totalCount: number;
+    hasMore: boolean;
+  }> {
+    this.logger.warn('Using fallback recommendation method');
+    
+    const { limit = 10, page = 1 } = input;
+    
+    // Simple vector search without LangChain filtering
+    const pipeline: any[] = [
+      {
+        $vectorSearch: {
+          index: 'vector_index',
+          queryVector: queryEmbedding,
+          path: 'embedding',
+          exact: true,
+          limit: limit,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          title: 1,
+          plot: 1,
+          poster: 1,
+          year: 1,
+          genres: 1,
+          rated: 1,
+          runtime: 1,
+          imdb: 1,
+          directors: 1,
+          cast: 1,
+          score: { $meta: 'vectorSearchScore' },
+        },
+      },
+    ];
+
+    const results = await this.movieModel.aggregate(pipeline);
+
+    const recommendations: MovieRecommendation[] = results.map((result, index) => ({
+      movie: {
+        id: result._id.toString(),
+        title: result.title,
+        plot: result.plot,
+        poster: result.poster,
+        year: result.year,
+        genres: result.genres,
+        rated: result.rated,
+        runtime: result.runtime,
+        imdb: result.imdb,
+        directors: result.directors,
+        cast: result.cast,
+      },
+      similarity: result.score || 0,
+      reason: `Rank #${index + 1} • Vector similarity match • ${result.genres?.slice(0, 2).join(' & ') || 'Various themes'}`,
+    }));
+
+    return {
+      recommendations,
+      totalCount: recommendations.length,
+      hasMore: false,
+    };
   }
 
   private createMovieText(movie: any): string {
@@ -188,46 +322,6 @@ export class RecommendationService {
     if (movie.rated) parts.push(`Rating: ${movie.rated}`);
 
     return parts.join('. ');
-  }
-
-  private generateRecommendationReason(
-    movie: any,
-    description: string,
-    similarity: number,
-    rank: number,
-  ): string {
-    const reasons: string[] = [];
-
-    // Add ranking
-    if (rank <= 3) {
-      reasons.push(`Top ${rank} match`);
-    } else {
-      reasons.push(`Rank #${rank}`);
-    }
-
-    // Add similarity-based reason
-    if (similarity > 0.8) {
-      reasons.push('Excellent semantic match');
-    } else if (similarity > 0.6) {
-      reasons.push('Strong thematic similarity');
-    } else if (similarity > 0.4) {
-      reasons.push('Good conceptual match');
-    } else {
-      reasons.push('Related themes');
-    }
-
-    // Add specific reasons based on movie attributes
-    if (movie.genres && movie.genres.length > 0) {
-      const genreText = movie.genres.slice(0, 2).join(' & ');
-      reasons.push(`${genreText} elements`);
-    }
-
-    if (movie.year) {
-      const decade = Math.floor(movie.year / 10) * 10;
-      reasons.push(`${decade}s classic`);
-    }
-
-    return reasons.join(' • ');
   }
 
   // Method to create embeddings for existing movies (for initial setup)
