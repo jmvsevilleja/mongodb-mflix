@@ -30,7 +30,7 @@ interface VideoPlayerProps {
 export function VideoPlayer({
   url,
   title,
-  poster,
+  // poster,
   className,
   autoPlay = false,
   controls = true,
@@ -40,16 +40,16 @@ export function VideoPlayer({
   const [muted, setMuted] = useState(false);
   const [volume, setVolume] = useState(0.8);
   const [played, setPlayed] = useState(0);
-  const [loaded, setLoaded] = useState(0);
-  console.log("Loaded:", loaded);
-  const [duration, setDuration] = useState(0);
-  const [seeking, setSeeking] = useState(false);
+  // const [loaded, setLoaded] = useState(0);
+  // console.log("Loaded:", loaded);
+  // const [duration, setDuration] = useState(0);
+  // const [seeking, setSeeking] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const playerRef = useRef<typeof ReactPlayer>(null);
+  // const playerRef = useRef<typeof ReactPlayer>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   // const controlsTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -135,7 +135,7 @@ export function VideoPlayer({
   // Handle seek
   const handleSeekChange = (value: number[]) => {
     setPlayed(value[0] / 100);
-    setSeeking(true);
+    // setSeeking(true);
   };
 
   // const handleSeekMouseUp = () => {
@@ -263,10 +263,10 @@ export function VideoPlayer({
                 step={0.1}
                 className="w-full"
               />
-              <div className="flex justify-between text-xs text-white/80">
+              {/* <div className="flex justify-between text-xs text-white/80">
                 <span>{formatTime(duration * played)}</span>
                 <span>{formatTime(duration)}</span>
-              </div>
+              </div> */}
             </div>
 
             {/* Control Buttons */}
