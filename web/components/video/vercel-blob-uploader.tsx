@@ -128,7 +128,6 @@ export function VercelBlobUploader({
         description: "Trailer has been uploaded to Vercel Blob",
       });
     } catch (error) {
-      clearInterval(progressInterval);
       const errorMessage =
         error instanceof Error ? error.message : "Upload failed";
       setError(errorMessage);
