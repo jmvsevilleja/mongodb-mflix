@@ -121,7 +121,7 @@ export function MovieRecommendation({
           <div className="relative">
             <Input
               type="text"
-              placeholder="Describe the kind of movie you're looking for... (e.g., 'a story where a cowboy and astronaut become friends')"
+              placeholder="Describe the kind of movie you're looking for... for demo purposes we only indexed movies related to toys (e.g., 'movie about toys that come to life')"
               className="pl-4 pr-12 py-3 text-base border-purple-200 dark:border-purple-700 focus:border-purple-400 dark:focus:border-purple-500"
               value={description}
               onChange={(e) => setDescription(e.target.value)}

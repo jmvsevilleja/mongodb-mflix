@@ -1,7 +1,17 @@
 import Link from "next/link";
-import { Check, Search, Sparkles, Brain, Zap, Star, Clock, Filter, Users } from "lucide-react";
+import {
+  Check,
+  Search,
+  Sparkles,
+  Brain,
+  Zap,
+  Star,
+  Clock,
+  Filter,
+  Users,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MainHeader } from "@/components/layout/main-header";
 
@@ -19,25 +29,34 @@ export default function Home() {
                 <Brain className="h-4 w-4" />
                 <span>Powered by AI • Mistral AI + LangChain</span>
               </div>
-              
+
               <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 Discover Movies with AI
               </h1>
-              
+
               <p className="max-w-3xl text-lg leading-relaxed text-muted-foreground sm:text-xl sm:leading-8">
-                Experience the future of movie discovery. Describe what you're looking for in natural language, 
-                and our AI will find the perfect movies using advanced semantic understanding and vector search.
+                Experience the future of movie discovery. Describe what
+                you&apos;re looking for in natural language, and our AI will
+                find the perfect movies using advanced semantic understanding
+                and vector search.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/movies">
-                  <Button size="lg" className="px-8 py-3 text-lg bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                  <Button
+                    size="lg"
+                    className="px-8 py-3 text-lg bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  >
                     <Sparkles className="mr-2 h-5 w-5" />
                     Try AI Search
                   </Button>
                 </Link>
                 <Link href="/movies">
-                  <Button variant="outline" size="lg" className="px-8 py-3 text-lg border-purple-200 hover:bg-purple-50 dark:border-purple-700 dark:hover:bg-purple-950/20">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="px-8 py-3 text-lg border-purple-200 hover:bg-purple-50 dark:border-purple-700 dark:hover:bg-purple-950/20"
+                  >
                     <Search className="mr-2 h-5 w-5" />
                     Browse Movies
                   </Button>
@@ -47,16 +66,28 @@ export default function Home() {
               {/* Demo Examples */}
               <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 max-w-4xl">
                 <div className="rounded-lg bg-white/60 dark:bg-gray-900/60 p-3 text-sm backdrop-blur-sm border border-purple-200 dark:border-purple-800">
-                  <span className="text-purple-600 dark:text-purple-400 font-medium">"cowboy and astronaut become friends"</span>
-                  <div className="text-xs text-muted-foreground mt-1">→ Toy Story (95% match)</div>
+                  <span className="text-purple-600 dark:text-purple-400 font-medium">
+                    movie about toys that come to life
+                  </span>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    → Toy Story (95% match)
+                  </div>
                 </div>
                 <div className="rounded-lg bg-white/60 dark:bg-gray-900/60 p-3 text-sm backdrop-blur-sm border border-purple-200 dark:border-purple-800">
-                  <span className="text-purple-600 dark:text-purple-400 font-medium">"space battles with lightsabers"</span>
-                  <div className="text-xs text-muted-foreground mt-1">→ Star Wars saga</div>
+                  <span className="text-purple-600 dark:text-purple-400 font-medium">
+                    space battles with lightsabers
+                  </span>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    → Star Wars saga
+                  </div>
                 </div>
                 <div className="rounded-lg bg-white/60 dark:bg-gray-900/60 p-3 text-sm backdrop-blur-sm border border-purple-200 dark:border-purple-800 sm:col-span-2 lg:col-span-1">
-                  <span className="text-purple-600 dark:text-purple-400 font-medium">"talking animals with life lessons"</span>
-                  <div className="text-xs text-muted-foreground mt-1">→ The Lion King, Zootopia</div>
+                  <span className="text-purple-600 dark:text-purple-400 font-medium">
+                    talking animals with life lessons
+                  </span>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    → The Lion King, Zootopia
+                  </div>
                 </div>
               </div>
             </div>
@@ -69,13 +100,16 @@ export default function Home() {
             <div className="text-center space-y-4">
               <div className="flex items-center justify-center gap-2 text-purple-600 dark:text-purple-400">
                 <Brain className="h-6 w-6" />
-                <span className="text-sm font-medium uppercase tracking-wider">AI Technology</span>
+                <span className="text-sm font-medium uppercase tracking-wider">
+                  AI Technology
+                </span>
               </div>
               <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold">
                 How Our AI Works
               </h2>
               <p className="max-w-2xl mx-auto text-lg text-muted-foreground">
-                Advanced machine learning and semantic understanding to find exactly what you're looking for
+                Advanced machine learning and semantic understanding to find
+                exactly what you&apos;re looking for
               </p>
             </div>
 
@@ -87,7 +121,8 @@ export default function Home() {
                 <div>
                   <h3 className="font-semibold text-lg">Natural Language</h3>
                   <p className="text-sm text-muted-foreground">
-                    Describe movies in your own words, just like talking to a friend
+                    Describe movies in your own words, just like talking to a
+                    friend
                   </p>
                 </div>
               </div>
@@ -153,14 +188,19 @@ export default function Home() {
                       <Brain className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">AI-Powered Recommendations</CardTitle>
-                      <Badge variant="secondary" className="text-xs">Featured</Badge>
+                      <CardTitle className="text-lg">
+                        AI-Powered Recommendations
+                      </CardTitle>
+                      <Badge variant="secondary" className="text-xs">
+                        Featured
+                      </Badge>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Describe what you want to watch in natural language and get semantically relevant movie suggestions
+                    Describe what you want to watch in natural language and get
+                    semantically relevant movie suggestions
                   </p>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs">
@@ -186,12 +226,15 @@ export default function Home() {
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
                       <Search className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <CardTitle className="text-lg">Advanced Search & Filters</CardTitle>
+                    <CardTitle className="text-lg">
+                      Advanced Search & Filters
+                    </CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Traditional search with powerful filtering by genre, year, rating, language, and more
+                    Traditional search with powerful filtering by genre, year,
+                    rating, language, and more
                   </p>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs">
@@ -217,12 +260,15 @@ export default function Home() {
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
                       <Users className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
-                    <CardTitle className="text-lg">Rich Movie Information</CardTitle>
+                    <CardTitle className="text-lg">
+                      Rich Movie Information
+                    </CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Comprehensive movie details including cast, crew, ratings, and reviews
+                    Comprehensive movie details including cast, crew, ratings,
+                    and reviews
                   </p>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs">
@@ -253,7 +299,8 @@ export default function Home() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Optimized for speed with intelligent caching and efficient vector operations
+                    Optimized for speed with intelligent caching and efficient
+                    vector operations
                   </p>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs">
@@ -284,7 +331,8 @@ export default function Home() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Beautiful, responsive interface that works perfectly on all devices
+                    Beautiful, responsive interface that works perfectly on all
+                    devices
                   </p>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs">
@@ -315,7 +363,8 @@ export default function Home() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Infinite scroll and smart pagination for seamless browsing experience
+                    Infinite scroll and smart pagination for seamless browsing
+                    experience
                   </p>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs">
@@ -407,18 +456,27 @@ export default function Home() {
                 Ready to Discover Your Next Favorite Movie?
               </h2>
               <p className="text-lg opacity-90">
-                Experience the future of movie discovery with AI-powered recommendations. 
-                Find exactly what you're looking for, even if you don't know how to describe it.
+                Experience the future of movie discovery with AI-powered
+                recommendations. Find exactly what you&apos;re looking for, even
+                if you don&apos;t know how to describe it.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/movies">
-                  <Button size="lg" variant="secondary" className="px-8 py-3 text-lg bg-white text-purple-600 hover:bg-gray-100">
+                  <Button
+                    size="lg"
+                    variant="secondary"
+                    className="px-8 py-3 text-lg bg-white text-purple-600 hover:bg-gray-100"
+                  >
                     <Sparkles className="mr-2 h-5 w-5" />
                     Start Exploring
                   </Button>
                 </Link>
                 <Link href="/movies">
-                  <Button size="lg" variant="outline" className="px-8 py-3 text-lg border-white text-white hover:bg-white/10">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="px-8 py-3 text-lg border-white text-white hover:bg-white/10"
+                  >
                     <Search className="mr-2 h-5 w-5" />
                     Browse Movies
                   </Button>
@@ -432,7 +490,8 @@ export default function Home() {
       <footer className="border-t py-8 bg-muted/30">
         <div className="container flex flex-col items-center justify-between gap-4 md:flex-row">
           <p className="text-center text-sm leading-loose text-muted-foreground">
-            &copy; {new Date().getFullYear()} Movies App. Powered by AI for intelligent movie discovery.
+            &copy; {new Date().getFullYear()} Movies App. Powered by AI for
+            intelligent movie discovery.
           </p>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
