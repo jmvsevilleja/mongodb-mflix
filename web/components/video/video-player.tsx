@@ -51,26 +51,26 @@ export function VideoPlayer({
 
   const playerRef = useRef<typeof ReactPlayer>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout>();
+  // const controlsTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Auto-hide controls
-  useEffect(() => {
-    if (controlsTimeoutRef.current) {
-      clearTimeout(controlsTimeoutRef.current);
-    }
+  // // Auto-hide controls
+  // useEffect(() => {
+  //   if (controlsTimeoutRef.current) {
+  //     clearTimeout(controlsTimeoutRef.current);
+  //   }
 
-    if (playing && showControls) {
-      controlsTimeoutRef.current = setTimeout(() => {
-        setShowControls(false);
-      }, 3000);
-    }
+  //   if (playing && showControls) {
+  //     controlsTimeoutRef.current = setTimeout(() => {
+  //       setShowControls(false);
+  //     }, 3000);
+  //   }
 
-    return () => {
-      if (controlsTimeoutRef.current) {
-        clearTimeout(controlsTimeoutRef.current);
-      }
-    };
-  }, [playing, showControls]);
+  //   return () => {
+  //     if (controlsTimeoutRef.current) {
+  //       clearTimeout(controlsTimeoutRef.current);
+  //     }
+  //   };
+  // }, [playing, showControls]);
 
   // Handle mouse movement to show controls
   const handleMouseMove = () => {
@@ -104,12 +104,12 @@ export function VideoPlayer({
         case "KeyF":
           toggleFullscreen();
           break;
-        case "ArrowLeft":
-          playerRef.current?.seekTo(played - 0.1, "fraction");
-          break;
-        case "ArrowRight":
-          playerRef.current?.seekTo(played + 0.1, "fraction");
-          break;
+        // case "ArrowLeft":
+        //   playerRef.current?.seekTo(played - 0.1, "fraction");
+        //   break;
+        // case "ArrowRight":
+        //   playerRef.current?.seekTo(played + 0.1, "fraction");
+        //   break;
         case "ArrowUp":
           e.preventDefault();
           setVolume(Math.min(1, volume + 0.1));
@@ -138,10 +138,10 @@ export function VideoPlayer({
     setSeeking(true);
   };
 
-  const handleSeekMouseUp = () => {
-    setSeeking(false);
-    playerRef.current?.seekTo(played, "fraction");
-  };
+  // const handleSeekMouseUp = () => {
+  //   setSeeking(false);
+  //   playerRef.current?.seekTo(played, "fraction");
+  // };
 
   // Handle volume change
   const handleVolumeChange = (value: number[]) => {
@@ -190,7 +190,7 @@ export function VideoPlayer({
       {/* Video Player */}
 
       <ReactPlayer
-        ref={playerRef}
+        // ref={playerRef}
         src={url}
         width="100%"
         height="100%"
@@ -201,30 +201,30 @@ export function VideoPlayer({
         onStart={() => setReady(true)}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
-        onProgress={({ played, loaded }) => {
-          if (!seeking) {
-            setPlayed(played);
-          }
-          setLoaded(loaded);
-        }}
-        onDuration={setDuration}
+        // onProgress={({ played, loaded }) => {
+        //   if (!seeking) {
+        //     setPlayed(played);
+        //   }
+        //   setLoaded(loaded);
+        // }}
+        //onDuration={setDuration}
         onError={(error) => {
           console.error("Video player error:", error);
           setError("Unable to play this video");
           onError?.();
         }}
-        config={{
-          file: {
-            attributes: {
-              poster: poster,
-              crossOrigin: "anonymous",
-            },
-            forceVideo: true,
-            forceAudio: false,
-            forceHLS: false,
-            forceDASH: false,
-          },
-        }}
+        // config={{
+        //   file: {
+        //     attributes: {
+        //       poster: poster,
+        //       crossOrigin: "anonymous",
+        //     },
+        //     forceVideo: true,
+        //     forceAudio: false,
+        //     forceHLS: false,
+        //     forceDASH: false,
+        //   },
+        // }}
       />
 
       {/* Custom Controls */}
@@ -258,7 +258,7 @@ export function VideoPlayer({
               <Slider
                 value={[played * 100]}
                 onValueChange={handleSeekChange}
-                onValueCommit={handleSeekMouseUp}
+                //  onValueCommit={handleSeekMouseUp}
                 max={100}
                 step={0.1}
                 className="w-full"
@@ -289,9 +289,9 @@ export function VideoPlayer({
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-white hover:bg-white/20"
-                  onClick={() =>
-                    playerRef.current?.seekTo(played - 0.1, "fraction")
-                  }
+                  // onClick={() =>
+                  //   playerRef.current?.seekTo(played - 0.1, "fraction")
+                  // }
                 >
                   <SkipBack className="h-4 w-4" />
                 </Button>
@@ -300,9 +300,9 @@ export function VideoPlayer({
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-white hover:bg-white/20"
-                  onClick={() =>
-                    playerRef.current?.seekTo(played + 0.1, "fraction")
-                  }
+                  // onClick={() =>
+                  //   playerRef.current?.seekTo(played + 0.1, "fraction")
+                  // }
                 >
                   <SkipForward className="h-4 w-4" />
                 </Button>
