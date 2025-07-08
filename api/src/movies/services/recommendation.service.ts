@@ -5,7 +5,8 @@ import { Movie, MovieDocument } from '../schemas/movie.schema';
 import { EmbeddingService } from './embedding.service';
 import {
   LangChainFilterService,
-  MovieCandidate,
+  MovieCandidate, 
+  FastRankedMovie,
 } from './langchain-filter.service';
 import { RecommendMoviesInput } from '../dto/recommend-movies.input';
 import { MovieRecommendation } from '../models/recommendation.model';
@@ -138,93 +139,78 @@ export class RecommendationService {
       console.log('Movie candidates:', movieCandidates);
 
       // Step 4: Use LangChain to intelligently filter and rank the candidates
-      this.logger.log('Applying LangChain intelligent filtering...');
-      const filteredRecommendations =
-        await this.langChainFilterService.filterAndRankMovies(
+      this.logger.log('Applying fast AI ranking...');
+      const rankedMovies =
+        await this.langChainFilterService.fastRankMovies(
           description,
           movieCandidates,
         );
 
-      // Step 5: Apply pagination to the filtered results
+      // Step 5: Apply pagination to the ranked results
       const skip = (page - 1) * limit;
-      const paginatedRecommendations = filteredRecommendations.slice(
+      const paginatedRecommendations = rankedMovies.slice(
         skip,
         skip + limit,
       );
 
       // Step 6: Transform to final recommendation format
       const recommendations: MovieRecommendation[] = await Promise.all(
-        paginatedRecommendations.map(async (filtered, index) => {
+        paginatedRecommendations.map(async (ranked, index) => {
           const movieData = {
-            id: filtered.movie.id,
-            title: filtered.movie.title,
-            plot: filtered.movie.plot,
-            fullplot: filtered.movie.fullplot,
+            id: ranked.movie.id,
+            title: ranked.movie.title,
+            plot: ranked.movie.plot,
+            fullplot: ranked.movie.fullplot,
             poster: vectorResults.find(
-              (r) => r._id.toString() === filtered.movie.id,
+              (r) => r._id.toString() === ranked.movie.id,
             )?.poster,
-            year: filtered.movie.year,
-            genres: filtered.movie.genres,
-            rated: filtered.movie.rated,
+            year: ranked.movie.year,
+            genres: ranked.movie.genres,
+            rated: ranked.movie.rated,
             runtime: vectorResults.find(
-              (r) => r._id.toString() === filtered.movie.id,
+              (r) => r._id.toString() === ranked.movie.id,
             )?.runtime,
             imdb: vectorResults.find(
-              (r) => r._id.toString() === filtered.movie.id,
+              (r) => r._id.toString() === ranked.movie.id,
             )?.imdb,
-            directors: filtered.movie.directors,
-            cast: filtered.movie.cast,
+            directors: ranked.movie.directors,
+            cast: ranked.movie.cast,
             languages: vectorResults.find(
-              (r) => r._id.toString() === filtered.movie.id,
+              (r) => r._id.toString() === ranked.movie.id,
             )?.languages,
             countries: vectorResults.find(
-              (r) => r._id.toString() === filtered.movie.id,
+              (r) => r._id.toString() === ranked.movie.id,
             )?.countries,
             released: vectorResults.find(
-              (r) => r._id.toString() === filtered.movie.id,
+              (r) => r._id.toString() === ranked.movie.id,
             )?.released,
             awards: vectorResults.find(
-              (r) => r._id.toString() === filtered.movie.id,
+              (r) => r._id.toString() === ranked.movie.id,
             )?.awards,
             tomatoes: vectorResults.find(
-              (r) => r._id.toString() === filtered.movie.id,
+              (r) => r._id.toString() === ranked.movie.id,
             )?.tomatoes,
             type: vectorResults.find(
-              (r) => r._id.toString() === filtered.movie.id,
+              (r) => r._id.toString() === ranked.movie.id,
             )?.type,
           };
 
-          // Use LangChain explanation or generate a detailed one
-          let explanation = filtered.explanation;
-          // if (filtered.relevanceScore > 70) {
-          //   try {
-          //     explanation =
-          //       await this.langChainFilterService.generateDetailedExplanation(
-          //         description,
-          //         filtered.movie,
-          //         filtered.relevanceScore,
-          //       );
-          //   } catch (error) {
-          //     this.logger.warn(
-          //       'Failed to generate detailed explanation, using default',
-          //     );
-          //   }
-          // }
+          // Generate simple reason based on ranking
+          const reason = this.generateSimpleReason(
+            ranked.relevanceScore,
+            index + skip + 1,
+            ranked.movie.genres,
+          );
 
           return {
             movie: movieData,
-            similarity: filtered.relevanceScore / 100, // Convert back to 0-1 scale
-            reason: this.enhanceReasonWithElements(
-              explanation,
-              filtered.matchingElements,
-              index + skip + 1,
-              filtered.relevanceScore,
-            ),
+            similarity: ranked.relevanceScore / 100, // Convert back to 0-1 scale
+            reason,
           };
         }),
       );
 
-      const totalCount = filteredRecommendations.length;
+      const totalCount = rankedMovies.length;
       const hasMore = skip + paginatedRecommendations.length < totalCount;
 
       this.logger.log(
@@ -244,11 +230,10 @@ export class RecommendationService {
     }
   }
 
-  private enhanceReasonWithElements(
-    explanation: string,
-    matchingElements: string[],
-    rank: number,
+  private generateSimpleReason(
     relevanceScore: number,
+    rank: number,
+    genres?: string[],
   ): string {
     const rankText = rank <= 3 ? `🏆 Top ${rank}` : `#${rank}`;
     const scoreText =
@@ -260,18 +245,16 @@ export class RecommendationService {
             ? '✨ Great Match'
             : '👍 Good Match';
 
-    let enhancedReason = `${rankText} • ${scoreText}`;
+    let reason = `${rankText} • ${scoreText}`;
 
-    if (matchingElements.length > 0) {
-      const elementsText = matchingElements.slice(0, 3).join(', ');
-      enhancedReason += ` • Key elements: ${elementsText}`;
+    if (genres && genres.length > 0) {
+      const genresText = genres.slice(0, 2).join(' & ');
+      reason += ` • ${genresText}`;
     }
 
-    if (explanation && explanation.length > 20) {
-      enhancedReason += ` • ${explanation}`;
-    }
+    reason += ` • AI-ranked for relevance`;
 
-    return enhancedReason;
+    return reason;
   }
 
   private async fallbackRecommendation(

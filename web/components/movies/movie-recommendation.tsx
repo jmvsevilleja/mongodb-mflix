@@ -159,7 +159,7 @@ export function MovieRecommendation({
               <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300">
                 <Brain className="h-4 w-4 animate-pulse" />
                 <span className="text-sm font-medium">
-                  AI Analysis in Progress...
+                  Fast AI Ranking in Progress...
                 </span>
               </div>
               <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">
@@ -167,8 +167,8 @@ export function MovieRecommendation({
                 <br />
                 • Searching vector database for similar movies
                 <br />
-                • Applying LangChain intelligent filtering
-                <br />• Generating personalized explanations
+                • Applying fast AI ranking for relevance
+                <br />• Optimized for speed and accuracy
               </div>
             </div>
           )}
@@ -313,8 +313,7 @@ export function MovieRecommendation({
             <div className="inline-flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-4 py-2 rounded-full">
               <Brain className="h-4 w-4" />
               <span>
-                Powered by Mistral AI embeddings + LangChain intelligent
-                filtering
+                Powered by Mistral AI embeddings + Fast LangChain ranking
               </span>
             </div>
           </div>
@@ -329,11 +328,10 @@ export function MovieRecommendation({
               <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
             </div>
             <p className="text-sm text-muted-foreground">
-              AI is analyzing your request and finding perfect matches...
+              AI is quickly ranking movies for perfect matches...
             </p>
             <div className="text-xs text-muted-foreground max-w-md">
-              Using advanced semantic understanding to go beyond simple keyword
-              matching
+              Fast AI ranking for optimal relevance without the wait
             </div>
           </div>
         </div>

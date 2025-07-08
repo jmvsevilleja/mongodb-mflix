@@ -22,9 +22,9 @@ This project is a full-stack application featuring a NestJS backend API and a Ne
 ### AI Workflow:
 1. **Embedding Creation**: User query → Mistral AI → 1024-dimensional vector
 2. **Vector Search**: MongoDB finds movies with similar embeddings
-3. **LangChain Filtering**: AI analyzes candidates and provides relevance scores
-4. **Smart Ranking**: Results ranked by AI-determined relevance (0-100 scale)
-5. **Explanation Generation**: AI creates personalized explanations for each recommendation
+3. **Fast AI Ranking**: LangChain quickly reorders candidates by relevance
+4. **Smart Sorting**: Results ranked by AI-determined relevance in milliseconds
+5. **Optimized Display**: Fast, relevant results without detailed explanations
 
 ## API
 
@@ -154,23 +154,23 @@ The frontend is a Next.js application featuring:
 
 ### LangChain Filtering Process
 1. **Candidate Retrieval**: Vector search gets 3x more results than needed
-2. **AI Analysis**: LangChain + Mistral Large analyzes each candidate
-3. **Relevance Scoring**: AI assigns 0-100 relevance scores
-4. **Intelligent Filtering**: Only movies with >30% relevance are included
-5. **Explanation Generation**: AI creates detailed explanations for top matches
-6. **Smart Ranking**: Final results sorted by AI relevance, not just vector similarity
+2. **Fast AI Ranking**: LangChain + Mistral Large quickly ranks candidates
+3. **Smart Reordering**: AI reorders movies by relevance in seconds
+4. **Optimized Results**: Fast, relevant ranking without detailed analysis
+5. **Speed Optimization**: Prioritizes user experience over detailed explanations
 
 ### Fallback System
 If AI filtering fails, the system falls back to:
 1. Basic vector search results
 2. Simple similarity-based ranking
-3. Generic explanations
+3. Fast genre-based reasons
 4. Ensures the system remains functional
 
 ## Performance Optimizations
 
 - **Batch Processing**: Embeddings created in batches to avoid rate limits
 - **Caching**: Vector embeddings stored in MongoDB for reuse
+- **Fast AI Ranking**: Optimized LangChain prompts for speed over detail
 - **Pagination**: AI filtering applied to paginated results
 - **Fallback Logic**: Multiple fallback layers ensure reliability
 - **Efficient Queries**: MongoDB aggregation pipelines for optimal performance
