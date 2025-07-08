@@ -49,7 +49,7 @@ export function VideoPlayer({
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const playerRef = useRef<ReactPlayer>(null);
+  const playerRef = useRef<typeof ReactPlayer>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout>();
 
