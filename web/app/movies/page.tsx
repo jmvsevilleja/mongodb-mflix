@@ -91,6 +91,7 @@ const GET_MOVIE_DETAIL = gql`
         }
       }
       type
+      trailer
     }
   }
 `;
@@ -131,6 +132,7 @@ export interface Movie {
     };
   };
   type?: string;
+  trailer?: string;
 }
 
 export interface MovieFiltersType {
@@ -248,7 +250,8 @@ export default function MoviesPage() {
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">Movie Discovery</h1>
           <p className="text-muted-foreground">
-            Search movies or get AI-powered recommendations based on your description
+            Search movies or get AI-powered recommendations based on your
+            description
           </p>
         </div>
 
@@ -335,7 +338,9 @@ export default function MoviesPage() {
             {hasActiveFilters && (
               <div className="flex flex-wrap gap-2">
                 {debouncedSearchTerm && (
-                  <Badge variant="secondary">Search: {debouncedSearchTerm}</Badge>
+                  <Badge variant="secondary">
+                    Search: {debouncedSearchTerm}
+                  </Badge>
                 )}
                 {selectedGenres.map((genre) => (
                   <Badge key={genre} variant="secondary">
@@ -343,7 +348,9 @@ export default function MoviesPage() {
                     <X
                       className="h-3 w-3 ml-1 cursor-pointer"
                       onClick={() =>
-                        setSelectedGenres((prev) => prev.filter((g) => g !== genre))
+                        setSelectedGenres((prev) =>
+                          prev.filter((g) => g !== genre)
+                        )
                       }
                     />
                   </Badge>

@@ -62,6 +62,7 @@ type Movie {
   runtime: Int
   title: String!
   tomatoes: Tomatoes
+  trailer: String
   type: String
   updatedAt: DateTime
   year: Int

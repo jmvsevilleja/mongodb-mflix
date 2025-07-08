@@ -129,6 +129,9 @@ export class Movie {
   num_mflix_comments?: number;
 
   @Field({ nullable: true })
+  trailer?: string;
+
+  @Field({ nullable: true })
   createdAt?: Date;
 
   @Field({ nullable: true })

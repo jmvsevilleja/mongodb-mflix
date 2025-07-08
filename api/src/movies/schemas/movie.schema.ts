@@ -76,6 +76,9 @@ export class Movie {
   @Prop()
   num_mflix_comments: number;
 
+  @Prop()
+  trailer?: string; // URL to MP4 trailer stored in Vercel Blob
+
   // Vector embedding for semantic search
   @Prop({ type: [Number], select: false }) // Don't include in normal queries
   embedding: number[];

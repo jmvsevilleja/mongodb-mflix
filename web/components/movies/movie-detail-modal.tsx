@@ -10,7 +10,16 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Star, Clock, Calendar, Globe, Award, Users, Loader2 } from "lucide-react";
+import {
+  Star,
+  Clock,
+  Calendar,
+  Globe,
+  Award,
+  Users,
+  Loader2,
+} from "lucide-react";
+import { TrailerSection } from "@/components/video/trailer-section";
 import { Movie } from "@/app/movies/page";
 import { format } from "date-fns";
 
@@ -33,7 +42,7 @@ export function MovieDetailModal({
 
   return (
     <Dialog open={!!movie} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         {loading ? (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="h-8 w-8 animate-spin" />
@@ -41,15 +50,16 @@ export function MovieDetailModal({
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle className="text-2xl">{detailData?.title}</DialogTitle>
+              <DialogTitle className="text-2xl">
+                {detailData?.title}
+              </DialogTitle>
               {detailData?.year && (
                 <DialogDescription>
                   Released in {detailData.year}
                 </DialogDescription>
               )}
             </DialogHeader>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Poster */}
               <div className="space-y-4">
                 <div className="aspect-[2/3] relative overflow-hidden rounded-lg">
@@ -73,7 +83,9 @@ export function MovieDetailModal({
                   {detailData?.imdb?.rating && (
                     <div className="flex items-center gap-2">
                       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-medium">{detailData.imdb.rating}/10</span>
+                      <span className="font-medium">
+                        {detailData.imdb.rating}/10
+                      </span>
                       {detailData.imdb.votes && (
                         <span className="text-sm text-muted-foreground">
                           ({detailData.imdb.votes.toLocaleString()} votes)
@@ -92,7 +104,9 @@ export function MovieDetailModal({
                   {detailData?.released && (
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
-                      <span>{format(new Date(detailData.released), "MMMM dd, yyyy")}</span>
+                      <span>
+                        {format(new Date(detailData.released), "MMMM dd, yyyy")}
+                      </span>
                     </div>
                   )}
 
@@ -103,7 +117,7 @@ export function MovieDetailModal({
               </div>
 
               {/* Details */}
-              <div className="md:col-span-2 space-y-6">
+              <div className="lg:col-span-2 space-y-6">
                 {/* Plot */}
                 {(detailData?.fullplot || detailData?.plot) && (
                   <div>
@@ -119,7 +133,7 @@ export function MovieDetailModal({
                   <div>
                     <h3 className="font-semibold mb-2">Genres</h3>
                     <div className="flex flex-wrap gap-2">
-                      {detailData.genres.map(genre => (
+                      {detailData.genres.map((genre) => (
                         <Badge key={genre} variant="outline">
                           {genre}
                         </Badge>
@@ -138,7 +152,9 @@ export function MovieDetailModal({
                         <Users className="h-4 w-4" />
                         Directors
                       </h3>
-                      <p className="text-sm">{detailData.directors.join(", ")}</p>
+                      <p className="text-sm">
+                        {detailData.directors.join(", ")}
+                      </p>
                     </div>
                   )}
 
@@ -166,7 +182,9 @@ export function MovieDetailModal({
                         <Globe className="h-4 w-4" />
                         Languages
                       </h3>
-                      <p className="text-sm">{detailData.languages.join(", ")}</p>
+                      <p className="text-sm">
+                        {detailData.languages.join(", ")}
+                      </p>
                     </div>
                   )}
 
@@ -176,7 +194,9 @@ export function MovieDetailModal({
                         <Globe className="h-4 w-4" />
                         Countries
                       </h3>
-                      <p className="text-sm">{detailData.countries.join(", ")}</p>
+                      <p className="text-sm">
+                        {detailData.countries.join(", ")}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -188,7 +208,10 @@ export function MovieDetailModal({
                       <Award className="h-4 w-4" />
                       Awards
                     </h3>
-                    <p className="text-sm">{detailData.awards.text || "No awards information available"}</p>
+                    <p className="text-sm">
+                      {detailData.awards.text ||
+                        "No awards information available"}
+                    </p>
                   </div>
                 )}
 
@@ -197,14 +220,22 @@ export function MovieDetailModal({
                   <div>
                     <h3 className="font-semibold mb-2">Rotten Tomatoes</h3>
                     <div className="flex gap-4 text-sm">
-                      <span>Critics: {detailData.tomatoes.critic.rating}/10</span>
+                      <span>
+                        Critics: {detailData.tomatoes.critic.rating}/10
+                      </span>
                       {detailData.tomatoes.viewer?.rating && (
-                        <span>Audience: {detailData.tomatoes.viewer.rating}/5</span>
+                        <span>
+                          Audience: {detailData.tomatoes.viewer.rating}/5
+                        </span>
                       )}
                     </div>
                   </div>
                 )}
               </div>
+            </div>
+            {/* Trailer Section - Full Width */}
+            <div className="mt-8">
+              {detailData && <TrailerSection movie={detailData} />}
             </div>
           </>
         )}
