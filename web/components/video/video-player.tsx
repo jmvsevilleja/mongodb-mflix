@@ -126,11 +126,11 @@ export function VideoPlayer({
   }, [playing, muted, volume, played, ready]);
 
   // Format time
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
+  // const formatTime = (seconds: number) => {
+  //   const mins = Math.floor(seconds / 60);
+  //   const secs = Math.floor(seconds % 60);
+  //   return `${mins}:${secs.toString().padStart(2, "0")}`;
+  // };
 
   // Handle seek
   const handleSeekChange = (value: number[]) => {
