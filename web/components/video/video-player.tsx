@@ -41,6 +41,7 @@ export function VideoPlayer({
   const [volume, setVolume] = useState(0.8);
   const [played, setPlayed] = useState(0);
   const [loaded, setLoaded] = useState(0);
+  console.log("Loaded:", loaded);
   const [duration, setDuration] = useState(0);
   const [seeking, setSeeking] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
@@ -187,9 +188,10 @@ export function VideoPlayer({
       )}
 
       {/* Video Player */}
+
       <ReactPlayer
         ref={playerRef}
-        url={url}
+        src={url}
         width="100%"
         height="100%"
         playing={playing}

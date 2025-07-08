@@ -4,17 +4,16 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Upload, 
-  FileVideo, 
-  Loader2, 
-  CheckCircle, 
+import {
+  Upload,
+  FileVideo,
+  Loader2,
+  CheckCircle,
   AlertCircle,
   Copy,
-  ExternalLink
+  ExternalLink,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -24,17 +23,17 @@ interface VercelBlobUploaderProps {
   movieTitle?: string;
 }
 
-export function VercelBlobUploader({ 
-  onUploadComplete, 
-  movieId, 
-  movieTitle 
+export function VercelBlobUploader({
+  onUploadComplete,
+  movieId,
+  movieTitle,
 }: VercelBlobUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -42,7 +41,7 @@ export function VercelBlobUploader({
     const file = event.target.files?.[0];
     if (file) {
       // Validate file type
-      if (!file.type.startsWith('video/')) {
+      if (!file.type.startsWith("video/")) {
         toast({
           title: "Invalid File Type",
           description: "Please select a video file (MP4, WebM, MOV, etc.)",
@@ -76,14 +75,17 @@ export function VercelBlobUploader({
     try {
       // Create a filename with movie info if available
       const timestamp = Date.now();
-      const fileExtension = file.name.split('.').pop();
-      const filename = movieTitle 
-        ? `trailers/${movieTitle.replace(/[^a-zA-Z0-9]/g, '_')}_${timestamp}.${fileExtension}`
+      const fileExtension = file.name.split(".").pop();
+      const filename = movieTitle
+        ? `trailers/${movieTitle.replace(
+            /[^a-zA-Z0-9]/g,
+            "_"
+          )}_${timestamp}.${fileExtension}`
         : `trailers/trailer_${timestamp}.${fileExtension}`;
 
       // In a real implementation, you would call your API endpoint that handles Vercel Blob upload
       // For demo purposes, we'll simulate the upload process
-      
+
       // Simulate upload progress
       const progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
@@ -113,7 +115,7 @@ export function VercelBlobUploader({
       // const { url } = await response.json();
 
       // For demo, create a mock Vercel Blob URL
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       clearInterval(progressInterval);
       setUploadProgress(100);
 
@@ -125,10 +127,10 @@ export function VercelBlobUploader({
         title: "Upload Successful",
         description: "Trailer has been uploaded to Vercel Blob",
       });
-
     } catch (error) {
       clearInterval(progressInterval);
-      const errorMessage = error instanceof Error ? error.message : "Upload failed";
+      const errorMessage =
+        error instanceof Error ? error.message : "Upload failed";
       setError(errorMessage);
       toast({
         title: "Upload Failed",
@@ -150,7 +152,7 @@ export function VercelBlobUploader({
       });
     } catch (error) {
       toast({
-        title: "Copy Failed",
+        title: "Copy Failed: " + error,
         description: "Failed to copy URL to clipboard",
         variant: "destructive",
       });
@@ -187,7 +189,7 @@ export function VercelBlobUploader({
               onChange={handleFileSelect}
               className="hidden"
             />
-            
+
             {selectedFile ? (
               <div className="space-y-2">
                 <FileVideo className="h-8 w-8 mx-auto text-primary" />
@@ -247,7 +249,9 @@ export function VercelBlobUploader({
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm font-medium">Uploading to Vercel Blob...</span>
+              <span className="text-sm font-medium">
+                Uploading to Vercel Blob...
+              </span>
             </div>
             <Progress value={uploadProgress} className="w-full" />
             <p className="text-xs text-muted-foreground">
@@ -269,7 +273,9 @@ export function VercelBlobUploader({
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-green-600 bg-green-50 dark:bg-green-950/20 p-3 rounded-lg">
               <CheckCircle className="h-4 w-4" />
-              <span className="text-sm font-medium">Upload completed successfully!</span>
+              <span className="text-sm font-medium">
+                Upload completed successfully!
+              </span>
             </div>
 
             <div className="space-y-2">
@@ -290,7 +296,7 @@ export function VercelBlobUploader({
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => window.open(uploadedUrl, '_blank')}
+                  onClick={() => window.open(uploadedUrl, "_blank")}
                 >
                   <ExternalLink className="h-4 w-4" />
                 </Button>
@@ -302,7 +308,7 @@ export function VercelBlobUploader({
               <ul className="list-disc list-inside space-y-1">
                 <li>Copy the URL above</li>
                 <li>Update your movie record in the database</li>
-                <li>Set the "trailer" field to this URL</li>
+                <li>Set the &quot;trailer&quot; field to this URL</li>
                 <li>The video player will automatically use this MP4 file</li>
               </ul>
             </div>
